@@ -281,7 +281,11 @@
         <aside class="sidebar">
             <div class="profile-section">
                 <div class="avatar"></div>
-                <span class="profile-label">Fazer<br>Login</span>
+                <a href="{{ url_for('login') }}" style="text-decoration: none; color: inherit;">
+                    <span class="profile-label">
+                        Fazer<br>Login
+                    </span>
+                </a>
             </div>
 
             <ul class="menu-items">
