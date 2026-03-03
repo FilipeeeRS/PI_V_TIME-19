@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='logoV1.png') }}" type="image/x-icon">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XXXXX | Bem_vindo</title>
+    <title>PrimeStudy | Bem_vindo</title>
     <style>
         body {
             margin: 0;
@@ -40,7 +41,6 @@
             font-weight: 800;
             margin: 0;
             line-height: 1.1;
-            text-transform: uppercase;
         }
 
         p {
@@ -97,17 +97,17 @@
 
     <div class="main-card">
         <div class="content-left">
-            <h1>BEM VINDO AO<br>XXXXX</h1>
+            <h1>BEM VINDO AO<h1>PrimeStudy</h1>
             <p>
-                O XXXXX é uma plataforma feita para organizar e otimizar os seus estudos, 
+                O PrimeStudy é uma plataforma feita para organizar e otimizar os seus estudos, 
                 com a ajuda de uma inteligencia artificial. Envie PDFs e receba resumos, topicos, flash cards e muito mais. Tudo isso 
-                para assim facilitar o seu aprendizado. Junte-se a nós a esse mundo. 
-                <a href="#">Saber mais</a>
+                para assim facilitar o seu aprendizado. Junte-se a nós. 
+                <a href="#">Saber mais.</a>
             </p>
         </div>
 
         <div class="icon-container">
-            <img src="{{ url_for('static', filename='logoV1.png') }}" alt="Logo da plataforma XXXXX" style="width: 280px; height: auto;">
+            <img src="{{ url_for('static', filename='logoV1.png') }}" alt="Logo da plataforma PrimeStudy" style="width: 280px; height: auto;">
         </div>
 
 <button class="btn-vamos-la" onclick="window.location.href='/home'">VAMOS LÁ!</button>    </div>

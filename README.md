@@ -1,4 +1,4 @@
-# PI_V_TIME-19 "ASSISTENTE DE ESTUDOS"
+# PI_V_TIME-19 "PrimeStudy"
 Projeto Integrar 5 / Puc Campinas Engenharia de Software 5º semestre
 
 ## 📍 O Projeto
