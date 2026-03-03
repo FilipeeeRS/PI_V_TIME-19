@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='logoV1.png') }}" type="image/x-icon">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrimeStudy | Novo Estudo</title>
+    <style>
+        :root {
+            --color-primary:    #7017B1;
+            --color-bg:         #1a1a1a;
+            --color-sidebar-bg: #121212;
+            --color-border:     #333;
+            --color-text-muted: #b3b3b3;
+            --color-text:       #ffffff;
+            --sidebar-width:    250px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--color-sidebar-bg);
+            border-right: 1px solid var(--color-border);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            background-color: var(--color-text);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .profile-label {
+            font-size: 24px;
+            font-weight: bold;
+            line-height: 1.1;
+        }
+
+        .menu-items {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .menu-items li {
+            padding: 10px 0 10px 20px;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            transition: color 0.2s;
+            font-weight: bold;
+        }
+
+        .menu-items li:hover { color: var(--color-text); }
+
+        .menu-items .active {
+            color: var(--color-primary);
+            font-weight: bold;
+            border-left: 3px solid var(--color-primary);
+            padding-left: 17px;
+        }
+
+        .menu-divider {
+            border: none;
+            border-top: 1px solid var(--color-border);
+            margin: 20px 0;
+        }
+
+        .menu-hint {
+            font-size: 14px;
+            opacity: 0.5;
+            cursor: default;
+            font-weight: normal;
+            padding-left: 20px;
+            margin: 0;
+            color: var(--color-text-muted);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-left: 10px;
+            cursor: pointer;
+        }
+
+        .sidebar-footer svg {
+            display: block;
+            transition: opacity 0.2s;
+        }
+
+        .sidebar-footer:hover svg { opacity: 0.7; }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 40px;
+        }
+
+        .top-bar h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .header-logo {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            font-size: 30px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .center-area {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .novo-estudo {
+            width: 100%;
+            max-width: 520px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--color-border);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 24px;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--color-primary);
+            background-color: rgba(0, 0, 0, 0.04);
+        }
+
+        .upload-icon { font-size: 36px; margin-bottom: 12px; }
+
+        .upload-area h3 { margin: 0 0 6px 0; font-size: 15px; font-weight: bold; }
+
+        .upload-area p { margin: 0 0 16px 0; font-size: 13px; color: var(--color-text-muted); }
+
+        .btn-escolher {
+            background-color: transparent;
+            color: var(--color-primary);
+            border: 1px solid var(--color-primary);
+            padding: 9px 24px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .btn-escolher:hover {
+            background-color: var(--color-primary);
+            color: var(--color-text);
+        }
+
+        .arquivo-selecionado {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 24px;
+            padding: 12px 16px;
+            background-color: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .arquivo-selecionado span { flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .arquivo-remover {
+            background: none;
+            border: none;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0;
+            transition: color 0.2s;
+        }
+
+        .arquivo-remover:hover { color: var(--color-text); }
+
+        .opcoes-label {
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--color-text-muted);
+            margin-bottom: 10px;
+        }
+
+        .opcoes-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+
+        .opcao {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: border-color 0.2s, background-color 0.2s;
+            user-select: none;
+        }
+
+        .opcao:hover { border-color: #555; }
+
+        .opcao.selecionada {
+            border-color: var(--color-primary);
+            background-color: rgba(0, 0, 0, 0.06 );
+        }
+
+        .opcao-icone { font-size: 18px; }
+        .opcao-texto { font-size: 14px; font-weight: bold; }
+
+        .btn-enviar {
+            background-color: var(--color-primary);
+            color: var(--color-text);
+            border: none;
+            padding: 13px 40px;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: inherit;
+            transition: opacity 0.2s;
+            align-self: center;
+        }
+
+        .btn-enviar:hover { opacity: 0.9; }
+        .btn-enviar:disabled { opacity: 0.3; cursor: default; }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: var(--color-bg);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 350px;
+            border: 1px solid var(--color-border);
+        }
+
+        .modal-content h2 { margin-top: 0; font-size: 28px; }
+        .modal-content p { color: var(--color-text-muted); line-height: 1.4; margin: 20px 0; }
+
+        .btn-modal {
+            background-color: var(--color-primary);
+            color: var(--color-text);
+            border: none;
+            padding: 12px 40px;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-family: inherit;
+        }
+
+        .btn-modal:hover { opacity: 0.9; }
+
+        .modal-info { display: none; }
+
+        .modal-info-content {
+            background-color: var(--color-bg);
+            padding: 36px;
+            border-radius: 20px;
+            max-width: 380px;
+            width: 100%;
+            border: 1px solid var(--color-border);
+        }
+
+        .modal-info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-info-title-group { display: flex; align-items: center; gap: 10px; }
+        .modal-info-title-group h2 { margin: 0; font-size: 22px; letter-spacing: 1px; }
+
+        .modal-info-version {
+            font-size: 11px;
+            color: var(--color-primary);
+            background-color: rgba(115, 0, 255, 0.12);
+            border: 1px solid rgba(115, 0, 255, 0.3);
+            border-radius: 50px;
+            padding: 3px 10px;
+            font-weight: bold;
+        }
+
+        .modal-info-close {
+            background: none;
+            border: none;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            font-size: 22px;
+            line-height: 1;
+            padding: 0;
+            transition: color 0.2s;
+            font-family: inherit;
+        }
+
+        .modal-info-close:hover { color: var(--color-text); }
+
+        .modal-info-divider { border: none; border-top: 1px solid var(--color-border); margin: 20px 0; }
+
+        .modal-info-section h3 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--color-text-muted);
+            margin: 0 0 6px 0;
+        }
+
+        .modal-info-section p { margin: 0; font-size: 14px; color: var(--color-text); line-height: 1.6; }
+
+        .modal-info-section a {
+            color: var(--color-primary);
+            text-decoration: none;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+
+        .modal-info-section a:hover { opacity: 0.8; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="profile-section">
+            <div class="avatar"></div>
+            <a href="{{ url_for('login') }}" style="text-decoration: none; color: inherit;">
+                <span class="profile-label">Fazer<br>Login</span>
+            </a>
+        </div>
+
+        <ul class="menu-items">
+            <a href="{{ url_for('novo_estudo') }}" style="text-decoration: none; color: inherit;">
+                <li class="active">NOVO ESTUDO</li>
+            </a>
+            <a href="{{ url_for('historico') }}" style="text-decoration: none; color: inherit;">
+                <li>HISTÓRICO</li>
+            </a>
+            <a href="{{ url_for('materias') }}" style="text-decoration: none; color: inherit;">
+                <li>MATÉRIAS</li>
+            </a>
+            <hr class="menu-divider">
+            <p class="menu-hint">Seus estudos aparecerão aqui.</p>
+        </ul>
+
+        <div class="sidebar-footer" id="btnAbrirInfo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="white" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"
+                aria-label="Informações">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+        </div>
+    </aside>
+
+    <main class="main-content">
+
+        <div class="top-bar">
+            <h1>NOVO ESTUDO</h1>
+            <div class="header-logo">PrimeStudy🐒</div>
+        </div>
+
+        <div class="center-area">
+            <div class="novo-estudo">
+
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📄</div>
+                    <h3>Arraste seu PDF</h3>
+                    <p>Apenas arquivos .pdf são aceitos</p>
+                    <button class="btn-escolher" id="btnEscolher">Escolher arquivo</button>
+                    <input type="file" id="inputArquivo" accept="application/pdf" style="display:none">
+                </div>
+
+                <div class="arquivo-selecionado" id="arquivoSelecionado">
+                    <span>📄</span>
+                    <span id="nomeArquivo"></span>
+                    <button class="arquivo-remover" id="btnRemover">✕</button>
+                </div>
+
+                <p class="opcoes-label">O que deseja?</p>
+                <div class="opcoes-grid">
+                    <div class="opcao" data-opcao="resumo">
+                        <span class="opcao-icone">📝</span>
+                        <span class="opcao-texto">Resumo</span>
+                    </div>
+                    <div class="opcao" data-opcao="flashcard">
+                        <span class="opcao-icone">🃏</span>
+                        <span class="opcao-texto">Flashcards</span>
+                    </div>
+                    <div class="opcao" data-opcao="questoes">
+                        <span class="opcao-icone">❓</span>
+                        <span class="opcao-texto">Questões</span>
+                    </div>
+                    <div class="opcao" data-opcao="mapa">
+                        <span class="opcao-icone">🗺️</span>
+                        <span class="opcao-texto">Mapa Mental</span>
+                    </div>
+                    <div class="opcao" data-opcao="checklist">
+                        <span class="opcao-icone">✅</span>
+                        <span class="opcao-texto">Checklist</span>
+                    </div>
+                </div>
+                <span id="avisoGeral" style="color: #ff4d4d; font-size: 11px; margin-bottom: 20px; display: none; text-align: center; width: 100%; font-weight: bold;"></span>
+                <button class="btn-enviar" id="btnEnviar" disabled>Enviar e Analisar</button>
+            </div>
+        </div>
+    </main>
+
+    <div id="modalInfo" class="modal-overlay modal-info">
+        <div class="modal-info-content">
+            <div class="modal-info-header">
+                <div class="modal-info-title-group">
+                    <h2>PrimeStudy</h2>
+                    <span>v1.0.0</span>
+                </div>
+                <button class="modal-info-close" id="btnFecharInfo">✕</button>
+            </div>
+            <div class="modal-info-section">
+                <h3>Sobre</h3>
+                <p>Projeto acadêmico Projeto Integrador V<br>
+                Curso Engenharia de Software PUC Campinas<br>
+                O objetivo é estudar e aplicar conceitos sobre inteligência artificial.</p>
+            </div>
+            <hr class="modal-info-divider">
+            <div class="modal-info-section">
+                <h3>Contato</h3>
+                <p>PrimeStudyPIV@gmail.com</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const modalInfo = document.getElementById('modalInfo');
+        const uploadArea = document.getElementById('uploadArea');
+        const inputArquivo = document.getElementById('inputArquivo');
+        const arquivoDiv = document.getElementById('arquivoSelecionado');
+        const nomeArquivo = document.getElementById('nomeArquivo');
+        const btnEnviar = document.getElementById('btnEnviar');
+        const opcoes = document.querySelectorAll('.opcao');
+        const avisoGeral = document.getElementById('avisoGeral');
+        let timeoutAviso;
+
+        document.getElementById('btnAbrirInfo').addEventListener('click', () => modalInfo.style.display = 'flex');
+        document.getElementById('btnFecharInfo').addEventListener('click', () => modalInfo.style.display = 'none');
+        modalInfo.addEventListener('click', e => { if (e.target === modalInfo) modalInfo.style.display = 'none'; });
+
+        function mostrarAviso(mensagem) {
+            avisoGeral.textContent = mensagem;
+            avisoGeral.style.display = 'block';
+            clearTimeout(timeoutAviso);
+            timeoutAviso = setTimeout(() => {
+                avisoGeral.style.display = 'none';
+            }, 5000);
+        }
+
+        function validarFormulario() {
+            const temArquivo = inputArquivo.files.length > 0;
+            const temOpcao = document.querySelectorAll('.opcao.selecionada').length > 0;
+            btnEnviar.disabled = !(temArquivo && temOpcao);
+        }
+
+        opcoes.forEach(opcao => {
+            opcao.addEventListener('click', function () {
+                const selecionadas = document.querySelectorAll('.opcao.selecionada');
+
+                if (this.classList.contains('selecionada')) {
+                    this.classList.remove('selecionada');
+                    avisoGeral.style.display = 'none';
+                } else if (selecionadas.length < 2) {
+                    this.classList.add('selecionada');
+                    avisoGeral.style.display = 'none';
+                } else {
+                    mostrarAviso("Você só pode selecionar 2 opções agora.");
+                }
+                validarFormulario();
+            });
+        });
+
+        document.getElementById('btnEscolher').addEventListener('click', () => inputArquivo.click());
+
+        inputArquivo.addEventListener('change', function () {
+            const file = this.files[0];
+            if (file) {
+                if (file.type === 'application/pdf') {
+                    selecionarArquivo(file);
+                } else {
+                    mostrarAviso("Apenas PDF são aceitos.");
+                    this.value = ''; 
+                    arquivoDiv.style.display = 'none';
+                    validarFormulario();
+                }
+            }
+        });
+
+        uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+        
+        uploadArea.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+
+            if (file && file.type === 'application/pdf') {
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                inputArquivo.files = dataTransfer.files;
+                selecionarArquivo(file);
+            } else {
+                mostrarAviso("Por favor, selecione apenas arquivos no formato PDF.");
+            }
+        });
+
+        function selecionarArquivo(file) {
+            nomeArquivo.textContent = file.name;
+            arquivoDiv.style.display = 'flex';
+            validarFormulario();
+        }
+
+        document.getElementById('btnRemover').addEventListener('click', () => {
+            inputArquivo.value = '';
+            arquivoDiv.style.display = 'none';
+            validarFormulario();
+        });
+    </script>
+
+</body>
+</html>
