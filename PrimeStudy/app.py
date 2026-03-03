@@ -18,5 +18,17 @@ def login():
 def registro():
     return render_template('registro.html')
 
+@app.route('/materias')
+def materias():
+    return render_template('materias.html')
+
+@app.route('/novo_estudo')
+def novo_estudo():
+    return render_template('novo_estudo.html')
+
+@app.route('/historico')
+def historico():
+    return render_template('historico.html')
+
 if __name__ == '__main__':
     app.run(debug=True)
