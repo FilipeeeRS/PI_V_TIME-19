@@ -1,315 +1,74 @@
-    <!DOCTYPE html>
-    <html lang="pt-br">
-    <head>
-        <link rel="shortcut icon" href="{{ url_for('static', filename='logoV1.png') }}" type="image/x-icon">
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>PrimeStudy | Home</title>
-        <style>
-            :root {
-                --color-primary:    #7017B1;
-                --color-bg:         #1a1a1a;
-                --color-sidebar-bg: #121212;
-                --color-border:     #333;
-                --color-text-muted: #b3b3b3;
-                --color-text:       #ffffff;
-                --sidebar-width:    250px;
-            }
+{% extends "home_base.html" %}
 
-            *, *::before, *::after {
-                box-sizing: border-box;
-            }
+{% block titulo %}Home{% endblock %}
+{% block titulo_pagina %}{% endblock %}
 
-            body {
-                margin: 0;
-                display: flex;
-                height: 100vh;
-                background-color: var(--color-bg);
-                color: var(--color-text);
-                font-family: 'Inter', sans-serif;
-            }
+{% block estilos %}
+<style>
+        .main-content {
+            flex-grow: 1;
+            padding: 40px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-            .sidebar {
-                width: var(--sidebar-width);
-                background-color: var(--color-sidebar-bg);
-                border-right: 1px solid var(--color-border);
-                display: flex;
-                flex-direction: column;
-                padding: 20px;
-            }
+        .welcome { text-align: center; }
 
-            .profile-section {
-                display: flex;
-                align-items: center;
-                gap: 15px;
-                padding-bottom: 20px;
-                margin-bottom: 20px;
-                border-bottom: 1px solid var(--color-border);
-            }
+        .welcome h1 {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 0 0 12px 0;
+        }
 
-            .avatar {
-                width: 50px;
-                height: 50px;
-                background-color: var(--color-text);
-                border-radius: 50%;
-                flex-shrink: 0;
-            }
+        .welcome p {
+            font-size: 16px;
+            color: var(--color-text-muted);
+            margin: 0;
+        }
 
-            .profile-label {
-                font-size: 24px;
-                font-weight: bold;
-                line-height: 1.1;
-            }
+        .modal-content {
+            background-color: var(--color-bg);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 350px;
+            border: 1px solid var(--color-border);
+        }
 
-            .menu-items {
-                list-style: none;
-                padding: 0;
-                margin: 0;
-                flex-grow: 1;
-            }
+        .modal-content h2 { margin-top: 0; font-size: 28px; }
 
-            .menu-items li {
-                padding: 10px 0 10px 20px;
-                color: var(--color-text-muted);
-                cursor: pointer;
-                transition: color 0.2s;
-                font-weight: bold;
-            }
+        .modal-content p {
+            color: var(--color-text-muted);
+            line-height: 1.4;
+            margin: 20px 0;
+        }
 
-            .menu-items li:hover {
-                color: var(--color-text);
-            }
+        .btn-modal {
+            background-color: var(--color-primary);
+            color: var(--color-text);
+            border: none;
+            padding: 12px 40px;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-family: inherit;
+        }
 
-            .menu-items .active {
-                color: var(--color-primary);
-                font-weight: bold;
-                border-left: 3px solid var(--color-primary);
-                padding-left: 17px;
-            }
+        .btn-modal:hover { opacity: 0.9; }
+</style>
+{% endblock %}
 
-            .menu-divider {
-                border: none;
-                border-top: 1px solid var(--color-border);
-                margin: 20px 0;
-            }
+{% block conteudo %}
+        <div class="welcome">
+            <h1>Olá!</h1>
+            <p>Selecione uma opção no painel à esquerda para começar.</p>
+        </div>
+{% endblock %}
 
-            .menu-hint {
-                font-size: 14px;
-                opacity: 0.5;
-                cursor: default;
-                font-weight: normal;
-                padding-left: 20px;
-                margin: 0;
-                color: var(--color-text-muted);
-            }
-
-            .sidebar-footer {
-                margin-top: auto;
-                padding-left: 10px;
-                cursor: pointer;
-            }
-
-            .sidebar-footer svg {
-                display: block;
-                transition: opacity 0.2s;
-            }
-
-            .sidebar-footer:hover svg {
-                opacity: 0.7;
-            }
-
-            .main-content {
-                flex-grow: 1;
-                padding: 40px;
-                position: relative;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
-
-            .header-logo {
-                position: absolute;
-                top: 20px;
-                right: 40px;
-                font-size: 30px;
-                font-weight: bold;
-                letter-spacing: 2px;
-            }
-
-            .welcome {
-                text-align: center;
-            }
-
-            .welcome h1 {
-                font-size: 48px;
-                font-weight: bold;
-                margin: 0 0 12px 0;
-            }
-
-            .welcome p {
-                font-size: 16px;
-                color: var(--color-text-muted);
-                margin: 0;
-            }
-
-            .modal-overlay {
-                position: fixed;
-                inset: 0;
-                background: rgba(0, 0, 0, 0.7);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-            }
-
-            .modal-content {
-                background-color: var(--color-bg);
-                padding: 40px;
-                border-radius: 20px;
-                text-align: center;
-                max-width: 350px;
-                border: 1px solid var(--color-border);
-            }
-
-            .modal-content h2 {
-                margin-top: 0;
-                font-size: 28px;
-            }
-
-            .modal-content p {
-                color: var(--color-text-muted);
-                line-height: 1.4;
-                margin: 20px 0;
-            }
-
-            .btn-modal {
-                background-color: var(--color-primary);
-                color: var(--color-text);
-                border: none;
-                padding: 12px 40px;
-                border-radius: 50px;
-                font-weight: bold;
-                cursor: pointer;
-                text-transform: uppercase;
-            }
-
-            .btn-modal:hover {opacity: 0.9;}
-
-            .modal-info {display: none;}
-
-            .modal-info-content {
-                background-color: var(--color-bg);
-                padding: 36px;
-                border-radius: 20px;
-                max-width: 380px;
-                width: 100%;
-                border: 1px solid var(--color-border);
-            }
-
-            .modal-info-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 24px;
-            }
-
-            .modal-info-title-group { display: flex; align-items: center; gap: 10px; }
-            .modal-info-title-group h2 { margin: 0; font-size: 22px; letter-spacing: 1px; }
-
-
-            .modal-info-version {
-                font-size: 11px;
-                color: var(--color-primary);
-                background-color: rgba(115, 0, 255, 0.12);
-                border: 1px solid rgba(115, 0, 255, 0.3);
-                border-radius: 50px;
-                padding: 3px 10px;
-                font-weight: bold;
-            }
-
-            .modal-info-close {
-                background: none;
-                border: none;
-                color: var(--color-text-muted);
-                cursor: pointer;
-                font-size: 22px;
-                line-height: 1;
-                padding: 0;
-                transition: color 0.2s;
-                font-family: inherit;
-            }
-
-            .modal-info-close:hover { color: var(--color-text); }
-
-            .modal-info-divider { border: none; border-top: 1px solid var(--color-border); margin: 20px 0; }
-
-            .modal-info-section h3 {
-                font-size: 11px;
-                text-transform: uppercase;
-                letter-spacing: 1.5px;
-                color: var(--color-text-muted);
-                margin: 0 0 6px 0;
-            }
-
-            .modal-info-section p { margin: 0; font-size: 14px; color: var(--color-text); line-height: 1.6; }
-
-            .modal-info-section a {
-                color: var(--color-primary);
-                text-decoration: none;
-                font-weight: bold;
-                transition: opacity 0.2s;
-            }
-
-            .modal-info-section a:hover {opacity: 0.8;}
-        </style>
-    </head>
-    <body>
-
-        <aside class="sidebar">
-            <div class="profile-section">
-                <div class="avatar"></div>
-                <a href="{{ url_for('login') }}" style="text-decoration: none; color: inherit;">
-                    <span class="profile-label">
-                        Fazer<br>Login
-                    </span>
-                </a>
-            </div>
-
-            <ul class="menu-items">
-                <a href="{{ url_for('novo_estudo') }}" style="text-decoration: none; color: inherit;">
-                    <li>NOVO ESTUDO</li>
-                </a>
-                <a href="{{ url_for('historico') }}" style="text-decoration: none; color: inherit;">
-                    <li>HISTÓRICO</li>
-                </a>
-                <a href="{{ url_for('materias') }}" style="text-decoration: none; color: inherit;">
-                    <li>MATÉRIAS</li>
-                </a>
-                <hr class="menu-divider">
-                <p class="menu-hint">Seus estudos aparecerão aqui.</p>
-            </ul>
-
-            <div class="sidebar-footer" id="btnAbrirInfo">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="white" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round"
-                    aria-label="Informações">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="16" x2="12" y2="12"></line>
-                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                </svg>
-            </div>
-        </aside>
-
-        <main class="main-content">
-            <div class="header-logo">PrimeStudy🐒</div>
-
-            <div class="welcome">
-                <h1>Olá!</h1>
-                <p class="menu-hint">Selecione uma opção no painel na esquerda para começar.</p>
-            </div>
-        </main>
-
+{% block modais %}
         <div id="modalAviso" class="modal-overlay">
             <div class="modal-content">
                 <h2>Atenção</h2>
@@ -317,52 +76,17 @@
                 <button class="btn-modal" id="btnFecharModal">OK</button>
             </div>
         </div>
+{% endblock %}
 
-        <div id="modalInfo" class="modal-overlay modal-info">
-            <div class="modal-info-content">
-                <div class="modal-info-header">
-                    <div class="modal-info-title-group">
-                        <h2>PrimeStudy</h2>
-                        <span>v1.0.0</span>
-                    </div>
-                    <button class="modal-info-close" id="btnFecharInfo">✕</button>
-                </div>
-                <div class="modal-info-section">
-                    <h3>Sobre</h3>
-                    <p>Projeto acadêmico Projeto Integrador V<br>
-                    Curso Engenharia de Software PUC Campinas<br>
-                    O objetivo é estudar e aplicar conceitos sobre inteligência artificial.</p>
-                </div>
-                <hr class="modal-info-divider">
-                <div class="modal-info-section">
-                    <h3>Contato</h3>
-                    <p>PrimeStudyPIV@gmail.com</p>
-                </div>
-            </div>
-        </div>
+{% block scripts %}
+    <script>
+        document.getElementById('btnFecharModal').addEventListener('click', () => {
+            document.getElementById('modalAviso').style.display = 'none';
+        });
 
-        <script>
-            const modalInfo = document.getElementById('modalInfo');
-
-            document.getElementById('btnFecharModal').addEventListener('click', function () {
-                document.getElementById('modalAviso').style.display = 'none';
-            });
-
-            document.getElementById('btnAbrirInfo').addEventListener('click', () => modalInfo.style.display = 'flex');
-            document.getElementById('btnFecharInfo').addEventListener('click', () => modalInfo.style.display = 'none');
-            modalInfo.addEventListener('click', e => { if (e.target === modalInfo) modalInfo.style.display = 'none'; });
-
-            document.getElementById('btnFecharInfo').addEventListener('click', function () {
-                modalInfo.style.display = 'none';
-            });
-
-            window.addEventListener('click', function (e) {
-                const modalAviso = document.getElementById('modalAviso');
-                if (e.target === modalAviso) {
-                    modalAviso.style.display = 'none';
-                }
-            });
-        </script>
-
-    </body>
-    </html>
+        window.addEventListener('click', e => {
+            const modalAviso = document.getElementById('modalAviso');
+            if (e.target === modalAviso) modalAviso.style.display = 'none';
+        });
+    </script>
+{% endblock %}

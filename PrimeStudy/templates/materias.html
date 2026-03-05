@@ -1,321 +1,319 @@
-<!DOCTYPE html>
-    <html lang="pt-br">
-    <head>
-        <link rel="shortcut icon" href="{{ url_for('static', filename='logoV1.png') }}" type="image/x-icon">
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>PrimeStudy | Matérias</title>
-        <style>
-            :root {
-                --color-primary:    #7017B1;
-                --color-bg:         #1a1a1a;
-                --color-sidebar-bg: #121212;
-                --color-border:     #333;
-                --color-text-muted: #b3b3b3;
-                --color-text:       #ffffff;
-                --sidebar-width:    250px;
-            }
+{% extends "home_base.html" %}
 
-            *, *::before, *::after { box-sizing: border-box; }
+{% block titulo %}Matérias{% endblock %}
+{% block titulo_pagina %}MATÉRIAS{% endblock %}
 
-            body {
-                margin: 0;
-                display: flex;
-                height: 100vh;
-                background-color: var(--color-bg);
-                color: var(--color-text);
-                font-family: 'Inter', sans-serif;
-            }
+{% block estilos %}
+<style>
+        .content-area {
+            flex-grow: 1;
+            padding: 0 40px 40px 40px;
+            overflow-y: auto;
+        }
 
-            .sidebar {
-                width: var(--sidebar-width);
-                background-color: var(--color-sidebar-bg);
-                border-right: 1px solid var(--color-border);
-                display: flex;
-                flex-direction: column;
-                padding: 20px;
-            }
+        .content-area::-webkit-scrollbar { width: 6px; }
+        .content-area::-webkit-scrollbar-track { background: transparent; }
+        .content-area::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
 
-            .profile-section {
-                display: flex;
-                align-items: center;
-                gap: 15px;
-                padding-bottom: 20px;
-                margin-bottom: 20px;
-                border-bottom: 1px solid var(--color-border);
-            }
+        .actions-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
 
-            .avatar {
-                width: 50px;
-                height: 50px;
-                background-color: var(--color-text);
-                border-radius: 50%;
-                flex-shrink: 0;
-            }
+        .materias-count { font-size: 13px; color: var(--color-text-muted); }
+        .materias-count span { color: var(--color-text); font-weight: bold; }
 
-            .profile-label {
-                font-size: 24px;
-                font-weight: bold;
-                line-height: 1.1;
-            }
+        .materias-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
 
-            .menu-items {
-                list-style: none;
-                padding: 0;
-                margin: 0;
-                flex-grow: 1;
-            }
+        .materia-card {
+            border-radius: 16px;
+            padding: 24px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
 
-            .menu-items li {
-                padding: 10px 0 10px 20px;
-                color: var(--color-text-muted);
-                cursor: pointer;
-                transition: color 0.2s;
-                font-weight: bold;
-            }
+        .materia-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
 
-            .menu-items li:hover { color: var(--color-text); }
+        .materia-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.18);
+            border-radius: 16px;
+        }
 
-            .menu-items .active {
-                color: var(--color-primary);
-                font-weight: bold;
-                border-left: 3px solid var(--color-primary);
-                padding-left: 17px;
-            }
+        .materia-card > * { position: relative; z-index: 1; }
 
-            .menu-divider {
-                border: none;
-                border-top: 1px solid var(--color-border);
-                margin: 20px 0;
-            }
+        .card-top {
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-start;
+        }
 
-            .menu-hint {
-                font-size: 14px;
-                opacity: 0.5;
-                cursor: default;
-                font-weight: normal;
-                padding-left: 20px;
-                margin: 0;
-                color: var(--color-text-muted);
-            }
+        .card-menu-btn {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0;
+            line-height: 1;
+            transition: color 0.2s;
+        }
 
-            .sidebar-footer {
-                margin-top: auto;
-                padding-left: 10px;
-                cursor: pointer;
-            }
+        .card-menu-btn:hover { color: #fff; }
 
-            .sidebar-footer svg {
-                display: block;
-                transition: opacity 0.2s;
-            }
+        .card-nome {
+            font-size: 17px;
+            font-weight: bold;
+            color: #fff;
+            margin: 0 0 6px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
 
-            .sidebar-footer:hover svg { opacity: 0.7; }
+        .card-info { font-size: 12px; color: rgba(255,255,255,0.75); }
 
-            .main-content {
-                flex-grow: 1;
-                display: flex;
-                flex-direction: column;
-            }
+        .materia-card.add-card {
+            background: transparent !important;
+            border: 2px dashed var(--color-border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
 
-            .top-bar {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 24px 40px;
-            }
+        .materia-card.add-card::before { display: none; }
 
-            .top-bar h1 {
-                margin: 0;
-                font-size: 22px;
-                font-weight: bold;
-                letter-spacing: 1px;
-            }
+        .materia-card.add-card:hover {
+            border-color: var(--color-primary);
+            transform: none;
+            box-shadow: none;
+        }
 
-            .header-logo {
-                position: absolute;
-                top: 20px;
-                right: 40px;
-                font-size: 30px;
-                font-weight: bold;
-                letter-spacing: 2px;
-            }
+        .add-card-label {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
 
-            .modal-overlay {
-                position: fixed;
-                inset: 0;
-                background: rgba(0, 0, 0, 0.7);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-            }
+        .c-blue   { background: #2563eb; }
+        .c-green  { background: #16a34a; }
+        .c-red    { background: #dc2626; }
+        .c-purple { background: #ca8a04; }
+        .c-teal   { background: #0891b2; }
+        .c-pink   { background: #db2777; }
 
-            .modal-content {
-                background-color: var(--color-bg);
-                padding: 40px;
-                border-radius: 20px;
-                text-align: center;
-                max-width: 350px;
-                border: 1px solid var(--color-border);
-            }
+        .modal-nova { display: none; }
 
-            .modal-content h2 { margin-top: 0; font-size: 28px; }
-            .modal-content p { color: var(--color-text-muted); line-height: 1.4; margin: 20px 0; }
+        .modal-nova-content {
+            background-color: var(--color-bg);
+            padding: 36px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 100%;
+            border: 1px solid var(--color-border);
+        }
 
-            .btn-modal {
-                background-color: var(--color-primary);
-                color: var(--color-text);
-                border: none;
-                padding: 12px 40px;
-                border-radius: 50px;
-                font-weight: bold;
-                cursor: pointer;
-                text-transform: uppercase;
-            }
+        .modal-nova-content h2 { margin: 0 0 24px 0; font-size: 20px; letter-spacing: 1px; }
 
-            .btn-modal:hover { opacity: 0.9; }
+        .modal-field { margin-bottom: 16px; }
 
-            .modal-info { display: none; }
+        .modal-field label {
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--color-text-muted);
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
 
-            .modal-info-content {
-                background-color: var(--color-bg);
-                padding: 36px;
-                border-radius: 20px;
-                max-width: 380px;
-                width: 100%;
-                border: 1px solid var(--color-border);
-            }
+        .modal-field input {
+            width: 100%;
+            background-color: #252525;
+            border: 1px solid var(--color-border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: var(--color-text);
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
 
-            .modal-info-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 24px;
-            }
+        .modal-field input:focus { border-color: var(--color-primary); }
 
-            .modal-info-title-group { display: flex; align-items: center; gap: 10px; }
-            .modal-info-title-group h2 { margin: 0; font-size: 22px; letter-spacing: 1px; }
+        .cor-grid { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
 
-            .modal-info-version {
-                font-size: 11px;
-                color: var(--color-primary);
-                background-color: rgba(115, 0, 255, 0.12);
-                border: 1px solid rgba(115, 0, 255, 0.3);
-                border-radius: 50px;
-                padding: 3px 10px;
-                font-weight: bold;
-            }
+        .cor-opcao {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: border-color 0.2s, transform 0.15s;
+        }
 
-            .modal-info-close {
-                background: none;
-                border: none;
-                color: var(--color-text-muted);
-                cursor: pointer;
-                font-size: 22px;
-                line-height: 1;
-                padding: 0;
-                transition: color 0.2s;
-                font-family: inherit;
-            }
+        .cor-opcao:hover { transform: scale(1.15); }
+        .cor-opcao.selecionada { border-color: #fff; }
 
-            .modal-info-close:hover { color: var(--color-text); }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
+        }
 
-            .modal-info-divider { border: none; border-top: 1px solid var(--color-border); margin: 20px 0; }
+        .btn-cancelar {
+            background: transparent;
+            border: 1px solid var(--color-border);
+            color: var(--color-text-muted);
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+            transition: color 0.2s, border-color 0.2s;
+        }
 
-            .modal-info-section h3 {
-                font-size: 11px;
-                text-transform: uppercase;
-                letter-spacing: 1.5px;
-                color: var(--color-text-muted);
-                margin: 0 0 6px 0;
-            }
+        .btn-cancelar:hover { color: var(--color-text); border-color: #555; }
 
-            .modal-info-section p { margin: 0; font-size: 14px; color: var(--color-text); line-height: 1.6; }
+        .btn-criar {
+            background-color: var(--color-primary);
+            color: var(--color-text);
+            border: none;
+            padding: 10px 28px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+            transition: opacity 0.2s;
+        }
 
-            .modal-info-section a {
-                color: var(--color-primary);
-                text-decoration: none;
-                font-weight: bold;
-                transition: opacity 0.2s;
-            }
+        .btn-criar:hover { opacity: 0.85; }
+</style>
+{% endblock %}
 
-            .modal-info-section a:hover { opacity: 0.8; }
-        </style>
-    </head>
-    <body>
-
-        <aside class="sidebar">
-            <div class="profile-section">
-                <div class="avatar"></div>
-                <a href="{{ url_for('login') }}" style="text-decoration: none; color: inherit;">
-                    <span class="profile-label">Fazer<br>Login</span>
-                </a>
+{% block conteudo %}
+        <div class="content-area">
+            <div class="actions-bar">
+                <p class="materias-count">Você tem <span id="totalMaterias">0</span> matéria(s)</p>
             </div>
+            <div class="materias-grid" id="materiasGrid"></div>
+        </div>
 
-            <ul class="menu-items">
-                <a href="{{ url_for('novo_estudo') }}" style="text-decoration: none; color: inherit;">
-                    <li>NOVO ESTUDO</li>
-                </a>
-                <a href="{{ url_for('historico') }}" style="text-decoration: none; color: inherit;">
-                    <li>HISTÓRICO</li>
-                </a>
-                <a href="{{ url_for('materias') }}" style="text-decoration: none; color: inherit;">
-                    <li class="active">MATÉRIAS</li>
-                </a>
-                <hr class="menu-divider">
-                <p class="menu-hint">Seus estudos aparecerão aqui.</p>
-            </ul>
-
-            <div class="sidebar-footer" id="btnAbrirInfo">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="white" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round"
-                    aria-label="Informações">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="16" x2="12" y2="12"></line>
-                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                </svg>
-            </div>
-        </aside>
-
-        <main class="main-content">
-            <div class="top-bar">
-                <h1>MATÉRIAS</h1>
-                <div class="header-logo">PrimeStudy🐒</div>
-            </div>
-        </main>
-
-        <!-- Modal de Info -->
-        <div id="modalInfo" class="modal-overlay modal-info">
-            <div class="modal-info-content">
-                <div class="modal-info-header">
-                    <div class="modal-info-title-group">
-                        <h2>PrimeStudy</h2>
-                        <span>v1.0.0</span>
-                    </div>
-                    <button class="modal-info-close" id="btnFecharInfo">✕</button>
+        <div id="modalNova" class="modal-overlay modal-nova">
+            <div class="modal-nova-content">
+                <h2>Nova Matéria</h2>
+                <div class="modal-field">
+                    <label>Nome da matéria</label>
+                    <input type="text" id="inputNomeMateria" placeholder="Ex: Matemática" maxlength="30">
                 </div>
-                <div class="modal-info-section">
-                    <h3>Sobre</h3>
-                    <p>Projeto acadêmico Projeto Integrador V<br>
-                    Curso Engenharia de Software PUC Campinas<br>
-                    O objetivo é estudar e aplicar conceitos sobre inteligência artificial.</p>
-                </div>
-                <hr class="modal-info-divider">
-                <div class="modal-info-section">
-                    <h3>Contato</h3>
-                    <p>PrimeStudyPIV@gmail.com</p>
+                <div class="modal-field">
+                    <label>Cor</label>
+                    <div class="cor-grid" id="corGrid">
+                        <div class="cor-opcao selecionada" data-cor="c-blue"   style="background:#2563eb"></div>
+                        <div class="cor-opcao" data-cor="c-green"  style="background:#16a34a"></div>
+                        <div class="cor-opcao" data-cor="c-red"    style="background:#dc2626"></div>
+                        <div class="cor-opcao" data-cor="c-purple" style="background:#ca8a04"></div>
+                        <div class="cor-opcao" data-cor="c-teal"   style="background:#0891b2"></div>
+                        <div class="cor-opcao" data-cor="c-pink"   style="background:#db2777"></div>
+                        <div class="cor-opcao" data-cor="c-gray"   style="background:#bdbdbd"></div>
+                <div class="modal-actions">
+                    <button class="btn-cancelar" id="btnCancelarNova">Cancelar</button>
+                    <button class="btn-criar" id="btnCriarMateria">Criar</button>
                 </div>
             </div>
         </div>
+{% endblock %}
 
-        <script>
-            const modalInfo = document.getElementById('modalInfo');
-            document.getElementById('btnAbrirInfo').addEventListener('click', () => modalInfo.style.display = 'flex');
-            document.getElementById('btnFecharInfo').addEventListener('click', () => modalInfo.style.display = 'none');
-            window.addEventListener('click', e => { if (e.target === modalInfo) modalInfo.style.display = 'none'; });
-        </script>
+{% block scripts %}
+    <script>
+        let materias = [];
+        let corSelecionada = 'c-blue';
 
-    </body>
-    </html>
+        function renderGrid() {
+            const grid = document.getElementById('materiasGrid');
+            document.getElementById('totalMaterias').textContent = materias.length;
+            grid.innerHTML = '';
+
+            materias.forEach((m, i) => {
+                const card = document.createElement('div');
+                card.className = `materia-card ${m.cor}`;
+                card.innerHTML = `
+                    <div class="card-top">
+                        <button class="card-menu-btn" data-index="${i}" title="Remover">✕</button>
+                    </div>
+                    <div class="card-bottom">
+                        <p class="card-nome">${m.nome}</p>
+                        <span class="card-info">${m.estudos} estudo${m.estudos !== 1 ? 's' : ''}</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            const addCard = document.createElement('div');
+            addCard.className = 'materia-card add-card';
+            addCard.innerHTML = `<span class="add-card-label">+ Nova Matéria</span>`;
+            addCard.addEventListener('click', abrirModalNova);
+            grid.appendChild(addCard);
+
+            grid.querySelectorAll('.card-menu-btn').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    materias.splice(parseInt(btn.dataset.index), 1);
+                    renderGrid();
+                });
+            });
+        }
+
+        const modalNova = document.getElementById('modalNova');
+
+        function abrirModalNova() {
+            document.getElementById('inputNomeMateria').value = '';
+            modalNova.style.display = 'flex';
+        }
+
+        document.getElementById('btnCancelarNova').addEventListener('click', () => modalNova.style.display = 'none');
+        modalNova.addEventListener('click', e => { if (e.target === modalNova) modalNova.style.display = 'none'; });
+
+        document.getElementById('corGrid').querySelectorAll('.cor-opcao').forEach(el => {
+            el.addEventListener('click', () => {
+                document.querySelectorAll('.cor-opcao').forEach(x => x.classList.remove('selecionada'));
+                el.classList.add('selecionada');
+                corSelecionada = el.dataset.cor;
+            });
+        });
+
+        document.getElementById('btnCriarMateria').addEventListener('click', () => {
+            const nome = document.getElementById('inputNomeMateria').value.trim();
+            if (!nome) { document.getElementById('inputNomeMateria').focus(); return; }
+            materias.push({ nome, cor: corSelecionada, estudos: 0 });
+            renderGrid();
+            modalNova.style.display = 'none';
+        });
+
+        renderGrid();
+    </script>
+{% endblock %}
