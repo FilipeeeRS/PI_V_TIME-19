@@ -9,6 +9,10 @@ def home():
 @app.route('/home')
 def home_page():
     return render_template('home.html')
+    
+@app.route('/home_base')
+def home_base():
+    return render_template('home_base.html')
 
 @app.route('/login')
 def login():
