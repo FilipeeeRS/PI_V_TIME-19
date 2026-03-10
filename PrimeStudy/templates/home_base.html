@@ -27,6 +27,7 @@
             font-family: 'Inter', sans-serif;
         }
 
+        /* ── SIDEBAR ── */
         .sidebar {
             width: var(--sidebar-width);
             background-color: var(--color-sidebar-bg);
@@ -113,6 +114,7 @@
         .sidebar-footer svg { display: block; transition: opacity 0.2s; }
         .sidebar-footer:hover svg { opacity: 0.7; }
 
+        /* ── MAIN ── */
         .main-content {
             flex-grow: 1;
             display: flex;
@@ -144,6 +146,7 @@
             letter-spacing: 2px;
         }
 
+        /* ── MODAL INFO ── */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -213,6 +216,7 @@
 
     </style>
 
+    <!-- CSS extra por página -->
     {% block estilos %}{% endblock %}
 </head>
 <body>
@@ -227,9 +231,17 @@
                     <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"></path>
                 </svg>
             </div>
-            <a href="{{ url_for('login') }}" style="text-decoration: none; color: inherit;">
-                <span class="profile-label">Fazer<br>Login</span>
-            </a>
+            {% if session.get('uid') %}
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    <span class="profile-label">{{ session.get('nome', 'Usuário').split()[0] }}</span>
+                    <a href="{{ url_for('logout') }}" style="font-size:12px; color:var(--color-text-muted); text-decoration:none; transition:color 0.2s;"
+                       onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-muted)'">Sair</a>
+                </div>
+            {% else %}
+                <a href="{{ url_for('login') }}" style="text-decoration: none; color: inherit;">
+                    <span class="profile-label">Fazer<br>Login</span>
+                </a>
+            {% endif %}
         </div>
 
         <ul class="menu-items">
@@ -261,12 +273,13 @@
     <main class="main-content">
         <div class="top-bar">
             <h1>{% block titulo_pagina %}{% endblock %}</h1>
-            <div class="header-logo">PrimeStudy🐒</div>
+            <div class="header-logo">PrimeStudy</div>
         </div>
 
         {% block conteudo %}{% endblock %}
     </main>
 
+    <!-- Modal de Info (compartilhado em todas as páginas) -->
     {% block modais %}{% endblock %}
 
     <div id="modalInfo" class="modal-overlay modal-info">
@@ -274,7 +287,7 @@
             <div class="modal-info-header">
                 <div class="modal-info-title-group">
                     <h2>PrimeStudy</h2>
-                    <h2>v1.0.0</h2>
+                    <span class="modal-info-version">v1.0.0</span>
                 </div>
                 <button class="modal-info-close" id="btnFecharInfo">✕</button>
             </div>
@@ -287,24 +300,19 @@
             <hr class="modal-info-divider">
             <div class="modal-info-section">
                 <h3>Contato</h3>
-                <p>primestudypiv@gmail.com</p>
+                <p><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a3f3d1cacec6f0d7d6c7daf3eaf5e3c4cec2cacf8dc0ccce">[email&#160;protected]</a></p>
             </div>
         </div>
     </div>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
-    <script>
+    <!-- JS base: modal de info (compartilhado) -->
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         const modalInfo = document.getElementById('modalInfo');
-        const btnAbrir = document.getElementById('btnAbrirInfo');
-        const btnFechar = document.getElementById('btnFecharInfo');
-
-        if (btnAbrir && modalInfo) {
-            btnAbrir.addEventListener('click', () => modalInfo.style.display = 'flex');
-            btnFechar.addEventListener('click', () => modalInfo.style.display = 'none');
-            modalInfo.addEventListener('click', e => { 
-                if (e.target === modalInfo) modalInfo.style.display = 'none'; 
-            });
-        }
+        document.getElementById('btnAbrirInfo').addEventListener('click', () => modalInfo.style.display = 'flex');
+        document.getElementById('btnFecharInfo').addEventListener('click', () => modalInfo.style.display = 'none');
+        modalInfo.addEventListener('click', e => {
+            if (e.target === modalInfo) modalInfo.style.display = 'none';
+        });
     </script>
 
     {% block scripts %}{% endblock %}
