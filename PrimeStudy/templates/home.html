@@ -63,12 +63,13 @@
 
 {% block conteudo %}
         <div class="welcome">
-            <h1>Olá!</h1>
+            <h1>Olá{% if session.get('nome') %}, {{ session.get('nome').split()[0] }}{% endif %}!</h1>
             <p>Selecione uma opção no painel à esquerda para começar.</p>
         </div>
 {% endblock %}
 
 {% block modais %}
+        {% if not session.get('uid') %}
         <div id="modalAviso" class="modal-overlay">
             <div class="modal-content">
                 <h2>Atenção</h2>
@@ -76,9 +77,11 @@
                 <button class="btn-modal" id="btnFecharModal">OK</button>
             </div>
         </div>
+        {% endif %}
 {% endblock %}
 
 {% block scripts %}
+    {% if not session.get('uid') %}
     <script>
         document.getElementById('btnFecharModal').addEventListener('click', () => {
             document.getElementById('modalAviso').style.display = 'none';
@@ -89,4 +92,5 @@
             if (e.target === modalAviso) modalAviso.style.display = 'none';
         });
     </script>
+    {% endif %}
 {% endblock %}
