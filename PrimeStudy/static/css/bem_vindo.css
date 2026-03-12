@@ -1,0 +1,85 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #121212;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: 'Inter', sans-serif;
+}
+
+.main-card {
+    background-color: #1a1a1a;
+    width: 800px;
+    height: 500px;
+    display: flex;
+    position: relative;
+    padding: 60px;
+    box-sizing: border-box;
+    color: white;
+    border-radius: 8px;
+}
+
+.content-left {
+    flex: 1.2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+h1 {
+    font-size: 48px;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.1;
+}
+
+.brand-name {
+    color: #7017B1;
+}
+
+p {
+    font-size: 16px;
+    color: #b3b3b3;
+    margin: 25px 0;
+    max-width: 380px;
+    line-height: 1.5;
+}
+
+p a {
+    color: #b3b3b3;
+    text-decoration: underline;
+}
+
+.btn-vamos-la {
+    background-color: #7017B1;
+    color: white;
+    border: none;
+    padding: 18px 50px;
+    font-size: 20px;
+    font-weight: bold;
+    border-radius: 50px;
+    cursor: pointer;
+    position: absolute;
+    bottom: 45px;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: opacity 0.2s;
+}
+
+.btn-vamos-la:hover {
+    opacity: 0.9;
+}
+
+.icon-container {
+    flex: 0.8;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.icon-container img {
+    width: 280px;
+    height: auto;
+}

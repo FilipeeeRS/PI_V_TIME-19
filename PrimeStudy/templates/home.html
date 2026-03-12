@@ -3,63 +3,6 @@
 {% block titulo %}Home{% endblock %}
 {% block titulo_pagina %}{% endblock %}
 
-{% block estilos %}
-<style>
-        .main-content {
-            flex-grow: 1;
-            padding: 40px;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .welcome { text-align: center; }
-
-        .welcome h1 {
-            font-size: 48px;
-            font-weight: bold;
-            margin: 0 0 12px 0;
-        }
-
-        .welcome p {
-            font-size: 16px;
-            color: var(--color-text-muted);
-            margin: 0;
-        }
-
-        .modal-content {
-            background-color: var(--color-bg);
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            max-width: 350px;
-            border: 1px solid var(--color-border);
-        }
-
-        .modal-content h2 { margin-top: 0; font-size: 28px; }
-
-        .modal-content p {
-            color: var(--color-text-muted);
-            line-height: 1.4;
-            margin: 20px 0;
-        }
-
-        .btn-modal {
-            background-color: var(--color-primary);
-            color: var(--color-text);
-            border: none;
-            padding: 12px 40px;
-            border-radius: 50px;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-family: inherit;
-        }
-
-        .btn-modal:hover { opacity: 0.9; }
-</style>
-{% endblock %}
 
 {% block conteudo %}
         <div class="welcome">
