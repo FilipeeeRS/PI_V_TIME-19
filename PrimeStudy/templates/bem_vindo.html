@@ -5,29 +5,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PrimeStudy | Bem Vindo</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bem_vindo.css') }}">
 </head>
 <body>
-
     <div class="main-card">
         <div class="content-left">
-            <h1>BEM VINDO AO<br><span class="brand-name">PrimeStudy</span></h1>
+            <h1>BEM VINDO AO</h1>
+            <h1>PrimeStudy</h1>
             <p>
                 O PrimeStudy é uma plataforma feita para organizar e otimizar os seus estudos, 
-                com a ajuda de uma inteligência artificial. Envie PDFs e receba resumos, tópicos, 
-                flashcards e muito mais. Junte-se a nós. 
+                com a ajuda de uma inteligencia artificial. Envie PDFs e receba resumos, topicos, flash cards e muito mais. Tudo isso 
+                para assim facilitar o seu aprendizado. Junte-se a nós. 
+                <a href="#">Saber mais.</a>
             </p>
         </div>
-
         <div class="icon-container">
-            <img src="{{ url_for('static', filename='logoV2.png') }}" alt="Logo da plataforma PrimeStudy">
+            <img src="{{ url_for('static', filename='logoV1.png') }}" alt="Logo da plataforma PrimeStudy" style="width: 280px; height: auto;">
         </div>
-
-        <button class="btn-vamos-la" onclick="window.location.href='/login'">VAMOS LÁ!</button>
+        <button class="btn-vamos-la" onclick="window.location.href='/home'">VAMOS LÁ!</button>
     </div>
-
 </body>
 </html>

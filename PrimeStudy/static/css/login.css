@@ -23,7 +23,6 @@ body {
     font-family: 'Inter', sans-serif;
 }
 
-/* Card */
 .card {
     background-color: var(--color-card-bg);
     border: 1px solid var(--color-border);
@@ -48,7 +47,6 @@ body {
     margin-bottom: 32px;
 }
 
-/* Formulário */
 .form-group {
     display: flex;
     flex-direction: column;
@@ -84,7 +82,6 @@ body {
     color: #555;
 }
 
-/* Esqueceu a senha */
 .forgot-password {
     text-align: center;
     margin-top: -8px;
@@ -102,7 +99,6 @@ body {
     color: var(--color-text);
 }
 
-/* Botão primário */
 .btn-primary {
     width: 100%;
     background-color: var(--color-primary);
@@ -122,7 +118,6 @@ body {
 .btn-primary:hover { opacity: 0.9; }
 .btn-primary:disabled { opacity: 0.5; cursor: default; }
 
-/* Divisor */
 .divider {
     display: flex;
     align-items: center;
@@ -140,7 +135,6 @@ body {
     background-color: var(--color-border);
 }
 
-/* Botão login com Google */
 .btn-google {
     width: 100%;
     background-color: transparent;
@@ -164,7 +158,6 @@ body {
     background-color: #1f1f1f;
 }
 
-/* Rodapé do card */
 .card-footer {
     text-align: center;
     margin-top: 28px;
@@ -191,7 +184,6 @@ body {
     opacity: 1 !important;
 }
 
-/* Campo de senha */
 .password-container {
     position: relative;
     display: flex;
@@ -215,7 +207,6 @@ body {
 
 .toggle-password:hover { color: var(--color-text); }
 
-/* Mensagem de erro */
 .erro-msg {
     color: #ff4d4d;
     font-size: 13px;
