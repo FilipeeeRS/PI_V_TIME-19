@@ -35,10 +35,6 @@ h1 {
     line-height: 1.1;
 }
 
-.brand-name {
-    color: #7017B1;
-}
-
 p {
     font-size: 16px;
     color: #b3b3b3;
@@ -79,7 +75,11 @@ p a {
     align-items: center;
 }
 
-.icon-container img {
-    width: 280px;
-    height: auto;
+.icon-placeholder {
+    width: 250px;
+    height: 250px;
+    background-image: url('CAMINHO_PARA_O_ICONE_GERADO.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
 }

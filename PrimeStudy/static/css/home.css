@@ -1,300 +1,266 @@
 :root {
-  --color-primary: #7017b1;
-  --color-bg: #1a1a1a;
-  --color-sidebar-bg: #121212;
-  --color-border: #333;
-  --color-text-muted: #b3b3b3;
-  --color-text: #ffffff;
-  --sidebar-width: 250px;
+    --color-primary:    #7017B1;
+    --color-bg:         #1a1a1a;
+    --color-sidebar-bg: #121212;
+    --color-border:     #333;
+    --color-text-muted: #b3b3b3;
+    --color-text:       #ffffff;
+    --sidebar-width:    250px;
 }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
-  margin: 0;
-  display: flex;
-  height: 100vh;
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  font-family: "Inter", sans-serif;
+    margin: 0;
+    display: flex;
+    height: 100vh;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: 'Inter', sans-serif;
 }
 
-/* ── SIDEBAR ── */
+/* --- SIDEBAR --- */
 .sidebar {
-  width: var(--sidebar-width);
-  background-color: var(--color-sidebar-bg);
-  border-right: 1px solid var(--color-border);
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-  flex-shrink: 0;
+    width: var(--sidebar-width);
+    background-color: var(--color-sidebar-bg);
+    border-right: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    flex-shrink: 0;
 }
 
 .profile-section {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  padding-bottom: 20px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .avatar {
-  width: 50px;
-  height: 50px;
-  background-color: #2a2a2a;
-  border-radius: 50%;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--color-border);
+    width: 50px;
+    height: 50px;
+    background-color: #2a2a2a;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-border);
 }
 
 .profile-label {
-  font-size: 24px;
-  font-weight: bold;
-  line-height: 1.1;
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 1.1;
 }
 
 .menu-items {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  flex-grow: 1;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
 }
 
 .menu-items li {
-  padding: 10px 0 10px 20px;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: color 0.2s;
-  font-weight: bold;
+    padding: 10px 0 10px 20px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+    font-weight: bold;
 }
 
-.menu-items li:hover {
-  color: var(--color-text);
-}
+.menu-items li:hover { color: var(--color-text); }
 
 .menu-items .active {
-  color: var(--color-primary);
-  font-weight: bold;
-  border-left: 3px solid var(--color-primary);
-  padding-left: 17px;
+    color: var(--color-primary);
+    font-weight: bold;
+    border-left: 3px solid var(--color-primary);
+    padding-left: 17px;
 }
 
 .menu-divider {
-  border: none;
-  border-top: 1px solid var(--color-border);
-  margin: 20px 0;
+    border: none;
+    border-top: 1px solid var(--color-border);
+    margin: 20px 0;
 }
 
 .menu-hint {
-  font-size: 14px;
-  opacity: 0.5;
-  cursor: default;
-  font-weight: normal;
-  padding-left: 20px;
-  margin: 0;
-  color: var(--color-text-muted);
+    font-size: 14px;
+    opacity: 0.5;
+    cursor: default;
+    font-weight: normal;
+    padding-left: 20px;
+    margin: 0;
+    color: var(--color-text-muted);
 }
 
 .sidebar-footer {
-  margin-top: auto;
-  padding-left: 10px;
-  cursor: pointer;
+    margin-top: auto;
+    padding-left: 10px;
+    cursor: pointer;
 }
 
-.sidebar-footer svg {
-  display: block;
-  transition: opacity 0.2s;
-}
-.sidebar-footer:hover svg {
-  opacity: 0.7;
-}
-
-/* ── MAIN ── */
+/* --- MAIN CONTENT & TOP BAR --- */
 .main-content {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 40px;
-  flex-shrink: 0;
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;           
+    padding: 24px 40px;
+    width: 100%;
+    flex-shrink: 0;
 }
 
 .top-bar h1 {
-  margin: 0;
-  font-size: 22px;
-  font-weight: bold;
-  letter-spacing: 1px;
+    margin: 0;
+    font-size: 30px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: white;
 }
 
 .header-logo {
-  position: absolute;
-  top: 20px;
-  right: 40px;
-  font-size: 30px;
-  font-weight: bold;
-  letter-spacing: 2px;
+    font-size: 30px; 
+    font-weight: bold;
+    color: white;
 }
 
-/* ── MODAL INFO ── */
 .modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 }
 
-.modal-info {
-  display: none;
-}
+.modal-info { display: none; }
 
 .modal-info-content {
-  background-color: var(--color-bg);
-  padding: 36px;
-  border-radius: 20px;
-  max-width: 380px;
-  width: 100%;
-  border: 1px solid var(--color-border);
+    background-color: var(--color-bg);
+    padding: 36px;
+    border-radius: 20px;
+    max-width: 380px;
+    width: 100%;
+    border: 1px solid var(--color-border);
 }
 
 .modal-info-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
 }
 
-.modal-info-title-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.modal-info-title-group h2 {
-  margin: 0;
-  font-size: 22px;
-  letter-spacing: 1px;
-}
+.modal-info-title-group { display: flex; align-items: center; gap: 10px; }
+.modal-info-title-group h2 { margin: 0; font-size: 22px; letter-spacing: 1px; }
 
 .modal-info-version {
-  font-size: 11px;
-  color: var(--color-primary);
-  background-color: rgba(115, 0, 255, 0.12);
-  border: 1px solid rgba(115, 0, 255, 0.3);
-  border-radius: 50px;
-  padding: 3px 10px;
-  font-weight: bold;
+    font-size: 11px;
+    color: var(--color-primary);
+    background-color: rgba(115, 0, 255, 0.12);
+    border: 1px solid rgba(115, 0, 255, 0.3);
+    border-radius: 50px;
+    padding: 3px 10px;
+    font-weight: bold;
 }
 
 .modal-info-close {
-  background: none;
-  border: none;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  font-size: 22px;
-  line-height: 1;
-  padding: 0;
-  transition: color 0.2s;
-  font-family: inherit;
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    font-size: 22px;
+    line-height: 1;
+    padding: 0;
+    transition: color 0.2s;
 }
 
-.modal-info-close:hover {
-  color: var(--color-text);
-}
+.modal-info-close:hover { color: var(--color-text); }
+.modal-info-divider { border: none; border-top: 1px solid var(--color-border); margin: 20px 0; }
+.modal-info-section h3 { font-size: 11px; text-transform: uppercase; color: var(--color-text-muted); margin: 0 0 6px 0; }
+.modal-info-section p { margin: 0; font-size: 14px; color: var(--color-text); line-height: 1.6; }
 
-.modal-info-divider {
-  border: none;
-  border-top: 1px solid var(--color-border);
-  margin: 20px 0;
-}
+/* static/css/home.css */
 
-.modal-info-section h3 {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: var(--color-text-muted);
-  margin: 0 0 6px 0;
-}
-
-.modal-info-section p {
-  margin: 0;
-  font-size: 14px;
-  color: var(--color-text);
-  line-height: 1.6;
-}
-
-.main-content {
-  flex-grow: 1;
-  padding: 40px;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
+/* Centralização do conteúdo de boas-vindas */
 .welcome {
-  text-align: center;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
 }
 
 .welcome h1 {
-  font-size: 48px;
-  font-weight: bold;
-  margin: 0 0 12px 0;
+    font-size: 48px;
+    font-weight: bold;
+    margin: 0 0 12px 0;
+    color: var(--color-text);
 }
 
 .welcome p {
-  font-size: 16px;
-  color: var(--color-text-muted);
-  margin: 0;
+    font-size: 16px;
+    color: var(--color-text-muted);
+    max-width: 400px;
+    line-height: 1.5;
 }
 
+/* Estilização do Modal de Aviso (Login) */
 .modal-content {
-  background-color: var(--color-bg);
-  padding: 40px;
-  border-radius: 20px;
-  text-align: center;
-  max-width: 350px;
-  border: 1px solid var(--color-border);
+    background-color: var(--color-bg);
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    border: 1px solid var(--color-border);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
 .modal-content h2 {
-  margin-top: 0;
-  font-size: 28px;
+    margin: 0 0 15px 0;
+    font-size: 28px;
+    color: var(--color-text);
 }
 
 .modal-content p {
-  color: var(--color-text-muted);
-  line-height: 1.4;
-  margin: 20px 0;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+    margin-bottom: 30px;
 }
 
+/* Botão do Modal */
 .btn-modal {
-  background-color: var(--color-primary);
-  color: var(--color-text);
-  border: none;
-  padding: 12px 40px;
-  border-radius: 50px;
-  font-weight: bold;
-  cursor: pointer;
-  text-transform: uppercase;
-  font-family: inherit;
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 12px 40px;
+    border-radius: 50px;
+    font-weight: bold;
+    font-size: 14px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
 }
 
 .btn-modal:hover {
-  opacity: 0.9;
+    background-color: #8a2be2; /* Um roxo levemente mais claro */
+    transform: scale(1.05);
+}
+
+.btn-modal:active {
+    transform: scale(0.95);
 }

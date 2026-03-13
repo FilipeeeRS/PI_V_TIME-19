@@ -1,8 +1,10 @@
 {% extends "home_base.html" %}
 
 {% block titulo %}Home{% endblock %}
-{% block titulo_pagina %}{% endblock %}
 
+{% block estilos %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+{% endblock %}
 
 {% block conteudo %}
         <div class="welcome">
