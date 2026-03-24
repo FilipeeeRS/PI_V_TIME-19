@@ -37,6 +37,8 @@ body {
     padding-bottom: 20px;
     margin-bottom: 20px;
     border-bottom: 1px solid var(--color-border);
+    min-width: 0;
+    overflow: hidden;
 }
 
 .avatar {
@@ -55,6 +57,11 @@ body {
     font-size: 24px;
     font-weight: bold;
     line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    max-width: 160px;
 }
 
 .menu-items {
@@ -202,13 +209,21 @@ body {
     align-items: center;
     text-align: center;
     padding: 20px;
+    min-width: 0;
+    overflow: hidden;
+    width: 100%;
 }
 
 .welcome h1 {
-    font-size: 48px;
+    font-size: 36px;
     font-weight: bold;
     margin: 0 0 12px 0;
     color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    max-width: 600px;
 }
 
 .welcome p {
