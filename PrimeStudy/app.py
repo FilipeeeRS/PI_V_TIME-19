@@ -3,8 +3,12 @@ import firebase_config
 from firebase_admin import auth
 import os
 from dotenv import load_dotenv
+from app.swagger import create_app
+
 
 load_dotenv()
+
+app = create_app()
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'troque-por-uma-chave-secreta-forte')
@@ -74,3 +78,4 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
