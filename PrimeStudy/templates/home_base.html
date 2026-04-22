@@ -22,10 +22,12 @@
                 </svg>
             </div>
             {% if session.get('uid') %}
-                <div style="display:flex; flex-direction:column; gap:4px;">
-                    <span class="profile-label">{{ session.get('nome', 'Usuário').split()[0] }}</span>
+                <div style="display:flex; flex-direction:column; gap:4px; min-width:0; overflow:hidden; width:100%;">
+                    <span class="profile-label" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; max-width:150px;">
+                        {{ session.get('nome', 'Usuário').split()[0][:15] }}{% if session.get('nome', '').split()[0]|length > 15 %}...{% endif %}
+                    </span>
                     <a href="{{ url_for('logout') }}" style="font-size:12px; color:var(--color-text-muted); text-decoration:none; transition:color 0.2s;"
-                       onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-muted)'">Sair</a>
+                    onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--color-text-muted)'">Sair</a>
                 </div>
             {% else %}
                 <a href="{{ url_for('login') }}" style="text-decoration: none; color: inherit;">

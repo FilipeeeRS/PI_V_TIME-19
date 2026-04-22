@@ -20,6 +20,7 @@ A partir do material enviado, a IA pode gerar:
 - [Filipe Ribeiro Simões](https://github.com/FilipeeeRS) RA: 24007657
 - [Lucas Albrechet L Ruman](https://github.com/RumanLucas2) RA: 
 - [Rafael Roveri Pires](https://github.com/RafssRv) RA: 24007131
+- [João Victor Moreira Vidal](https://github.com/JaoVidal1) RA: 19291384
 
 Orientadora:
 - Professora SÍLVIA CRISTINA DE MATOS SOARES

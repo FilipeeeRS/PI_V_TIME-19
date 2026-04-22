@@ -62,7 +62,7 @@ def criar_sessao():
         decoded = auth.verify_id_token(id_token)
         session['uid']   = decoded['uid']
         session['email'] = decoded.get('email', '')
-        session['nome']  = decoded.get('name', decoded.get('email', ''))
+        session['nome'] = decoded.get('name') or decoded.get('email', '')
         return jsonify({'status': 'ok'})
     except Exception as e:
         return jsonify({'status': 'erro', 'mensagem': str(e)}), 401
