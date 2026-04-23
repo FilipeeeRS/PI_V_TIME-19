@@ -3,6 +3,9 @@ import firebase_config
 from firebase_admin import auth
 import os
 from dotenv import load_dotenv
+from firebase_config import db
+import pdfplumber
+import io 
 
 load_dotenv()
 
@@ -71,6 +74,72 @@ def criar_sessao():
 def logout():
     session.clear()
     return redirect(url_for('home'))
+
+@app.route('/api/materias', methods=['GET'])
+def listar_materias(): 
+    uid = session.get('uid')
+    if not uid:
+        return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
+    
+    materias_ref = db.collection('usuarios').document(uid).collection('materias')
+    materias = [{'id': doc.id, **doc.to_dict()} for doc in materias_ref.stream()]
+    return jsonify(materias)
+
+@app.route('/api/materias', methods=['POST'])
+def criar_materia():
+    uid = session.get('uid')
+    if not uid:
+        return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
+    
+    data = request.get_json()
+    nome = data.get('nome', '').strip()
+    cor = data.get('cor', 'c-blue')
+    
+    if not nome:
+        return jsonify({'status': 'erro', 'mensagem': 'Nome obrigatório'}), 400
+    
+    materias_ref = db.collection('usuarios').document(uid).collection('materias')
+    doc = materias_ref.add({'nome': nome, 'cor': cor, 'estudos': 0})
+    return jsonify({'status': 'ok', 'id': doc[1].id})
+
+@app.route('/api/materias/<materia_id>', methods=['DELETE'])
+def deletar_materia(materia_id):
+    uid = session.get('uid')
+    if not uid:
+        return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
+    
+    db.collection('usuarios').document(uid).collection('materias').document(materia_id).delete()
+    return jsonify({'status': 'ok'})
+
+@app.route('/api/processar', methods=['POST'])
+def processar_pdf():
+    uid = session.get('uid')
+    if not uid:
+        return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
+
+    arquivo = request.files.get('arquivo')
+    opcao = request.form.get('opcao')
+
+    if not arquivo:
+        return jsonify({'status': 'erro', 'mensagem': 'Nenhum arquivo enviado'}), 400
+
+    # Extrai o texto do PDF
+    texto = ''
+    with pdfplumber.open(io.BytesIO(arquivo.read())) as pdf:
+        for pagina in pdf.pages:
+            conteudo = pagina.extract_text()
+            if conteudo:
+                texto += conteudo + '\n'
+
+    if not texto.strip():
+        return jsonify({'status': 'erro', 'mensagem': 'Não foi possível extrair texto do PDF'}), 400
+
+    # Por enquanto retorna o texto extraído pra testarmos
+    return jsonify({
+        'status': 'ok',
+        'opcao': opcao,
+        'texto_extraido': texto[:500]  # primeiros 500 caracteres pra testar
+    })
 
 if __name__ == '__main__':
     app.run(debug=True)
