@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from firebase_config import db
 import pdfplumber
 import io 
+import json 
 
 load_dotenv()
 
@@ -118,12 +119,11 @@ def processar_pdf():
         return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
 
     arquivo = request.files.get('arquivo')
-    opcao = request.form.get('opcao')
+    opcoes = json.loads(request.form.get('opcoes', '[]'))
 
     if not arquivo:
         return jsonify({'status': 'erro', 'mensagem': 'Nenhum arquivo enviado'}), 400
 
-    # Extrai o texto do PDF
     texto = ''
     with pdfplumber.open(io.BytesIO(arquivo.read())) as pdf:
         for pagina in pdf.pages:
@@ -132,13 +132,17 @@ def processar_pdf():
                 texto += conteudo + '\n'
 
     if not texto.strip():
-        return jsonify({'status': 'erro', 'mensagem': 'Não foi possível extrair texto do PDF'}), 400
+        if not texto.strip():
+            return jsonify({
+                'status': 'erro', 
+                'mensagem': 'Este PDF contém imagens escaneadas e não possui texto legível. Por favor, envie um PDF com texto selecionável.'
+            }), 400
 
-    # Por enquanto retorna o texto extraído pra testarmos
+
     return jsonify({
         'status': 'ok',
-        'opcao': opcao,
-        'texto_extraido': texto[:500]  # primeiros 500 caracteres pra testar
+        'opcoes': opcoes,
+        'texto_extraido': texto[:500]
     })
 
 if __name__ == '__main__':
