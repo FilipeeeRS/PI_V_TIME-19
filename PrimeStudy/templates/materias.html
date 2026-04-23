@@ -40,74 +40,114 @@
                 </div>
             </div>
         </div>
+        <div id="modalConfirmar" class="modal-overlay" style="display:none;">
+            <div class="modal-nova-content">
+                <h2>Excluir Matéria</h2>
+                <p id="modalConfirmarTexto" style="margin: 16px 0; color: var(--text-secondary);">
+                    Tem certeza que deseja excluir esta matéria? Todos os estudos serão perdidos.
+                </p>
+                <div class="modal-actions">
+                    <button class="btn-cancelar" id="btnCancelarExcluir">Cancelar</button>
+                    <button class="btn-criar" id="btnConfirmarExcluir" style="background:#dc2626;">Excluir</button>
+                </div>
+            </div>
+        </div>
 {% endblock %}
 
 {% block scripts %}
-    <script>
-        let materias = [];
-        let corSelecionada = 'c-blue';
+<script>
+    let materias = [];
 
-        function renderGrid() {
-            const grid = document.getElementById('materiasGrid');
-            document.getElementById('totalMaterias').textContent = materias.length;
-            grid.innerHTML = '';
-
-            materias.forEach((m, i) => {
-                const card = document.createElement('div');
-                card.className = `materia-card ${m.cor}`;
-                card.innerHTML = `
-                    <div class="card-top">
-                        <button class="card-menu-btn" data-index="${i}" title="Remover">✕</button>
-                    </div>
-                    <div class="card-bottom">
-                        <p class="card-nome">${m.nome}</p>
-                        <span class="card-info">${m.estudos} estudo${m.estudos !== 1 ? 's' : ''}</span>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-
-            const addCard = document.createElement('div');
-            addCard.className = 'materia-card add-card';
-            addCard.innerHTML = `<span class="add-card-label">+ Nova Matéria</span>`;
-            addCard.addEventListener('click', abrirModalNova);
-            grid.appendChild(addCard);
-
-            grid.querySelectorAll('.card-menu-btn').forEach(btn => {
-                btn.addEventListener('click', e => {
-                    e.stopPropagation();
-                    materias.splice(parseInt(btn.dataset.index), 1);
-                    renderGrid();
-                });
-            });
-        }
-
-        const modalNova = document.getElementById('modalNova');
-
-        function abrirModalNova() {
-            document.getElementById('inputNomeMateria').value = '';
-            modalNova.style.display = 'flex';
-        }
-
-        document.getElementById('btnCancelarNova').addEventListener('click', () => modalNova.style.display = 'none');
-        modalNova.addEventListener('click', e => { if (e.target === modalNova) modalNova.style.display = 'none'; });
-
-        document.getElementById('corGrid').querySelectorAll('.cor-opcao').forEach(el => {
-            el.addEventListener('click', () => {
-                document.querySelectorAll('.cor-opcao').forEach(x => x.classList.remove('selecionada'));
-                el.classList.add('selecionada');
-                corSelecionada = el.dataset.cor;
-            });
-        });
-
-        document.getElementById('btnCriarMateria').addEventListener('click', () => {
-            const nome = document.getElementById('inputNomeMateria').value.trim();
-            if (!nome) { document.getElementById('inputNomeMateria').focus(); return; }
-            materias.push({ nome, cor: corSelecionada, estudos: 0 });
-            renderGrid();
-            modalNova.style.display = 'none';
-        });
-
+    async function carregarMaterias() {
+        const res = await fetch('/api/materias');
+        materias = await res.json();
         renderGrid();
-    </script>
+    }
+
+    function renderGrid() {
+        const grid = document.getElementById('materiasGrid');
+        document.getElementById('totalMaterias').textContent = materias.length;
+        grid.innerHTML = '';
+
+        materias.forEach((m) => {
+            const card = document.createElement('div');
+            card.className = `materia-card ${m.cor}`;
+            card.innerHTML = `
+                <div class="card-top">
+                    <button class="card-menu-btn" data-id="${m.id}" title="Remover">✕</button>
+                </div>
+                <div class="card-bottom">
+                    <p class="card-nome">${m.nome}</p>
+                    <span class="card-info">${m.estudos} estudo${m.estudos !== 1 ? 's' : ''}</span>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+
+        const addCard = document.createElement('div');
+        addCard.className = 'materia-card add-card';
+        addCard.innerHTML = `<span class="add-card-label">+ Nova Matéria</span>`;
+        addCard.addEventListener('click', abrirModalNova);
+        grid.appendChild(addCard);
+
+        grid.querySelectorAll('.card-menu-btn').forEach(btn => {
+            btn.addEventListener('click', async e => {
+                e.stopPropagation();
+                const nome = btn.closest('.materia-card').querySelector('.card-nome').textContent;
+                const id = btn.dataset.id;
+
+                document.getElementById('modalConfirmarTexto').textContent = 
+                    `Tem certeza que deseja excluir "${nome}"? Todos os estudos serão perdidos.`;
+                
+                const modalConfirmar = document.getElementById('modalConfirmar');
+                modalConfirmar.style.display = 'flex';
+
+                document.getElementById('btnConfirmarExcluir').onclick = async () => {
+                    modalConfirmar.style.display = 'none';
+                    await fetch(`/api/materias/${id}`, { method: 'DELETE' });
+                    await carregarMaterias();
+                };
+
+                document.getElementById('btnCancelarExcluir').onclick = () => {
+                    modalConfirmar.style.display = 'none';
+                };
+            });
+        });
+    }
+
+    const modalNova = document.getElementById('modalNova');
+    let corSelecionada = 'c-blue';
+
+    function abrirModalNova() {
+        document.getElementById('inputNomeMateria').value = '';
+        modalNova.style.display = 'flex';
+    }
+
+    document.getElementById('btnCancelarNova').addEventListener('click', () => modalNova.style.display = 'none');
+    modalNova.addEventListener('click', e => { if (e.target === modalNova) modalNova.style.display = 'none'; });
+
+    document.getElementById('corGrid').querySelectorAll('.cor-opcao').forEach(el => {
+        el.addEventListener('click', () => {
+            document.querySelectorAll('.cor-opcao').forEach(x => x.classList.remove('selecionada'));
+            el.classList.add('selecionada');
+            corSelecionada = el.dataset.cor;
+        });
+    });
+
+    document.getElementById('btnCriarMateria').addEventListener('click', async () => {
+        const nome = document.getElementById('inputNomeMateria').value.trim();
+        if (!nome) { document.getElementById('inputNomeMateria').focus(); return; }
+
+        await fetch('/api/materias', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome, cor: corSelecionada })
+        });
+
+        modalNova.style.display = 'none';
+        await carregarMaterias();
+    });
+
+    carregarMaterias();
+</script>
 {% endblock %}

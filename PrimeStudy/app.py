@@ -3,6 +3,7 @@ import firebase_config
 from firebase_admin import auth
 import os
 from dotenv import load_dotenv
+from firebase_config import db
 
 load_dotenv()
 
@@ -71,6 +72,42 @@ def criar_sessao():
 def logout():
     session.clear()
     return redirect(url_for('home'))
+
+@app.route('/api/materias', methods=['GET'])
+def listar_materias(): 
+    uid = session.get('uid')
+    if not uid:
+        return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
+    
+    materias_ref = db.collection('usuarios').document(uid).collection('materias')
+    materias = [{'id': doc.id, **doc.to_dict()} for doc in materias_ref.stream()]
+    return jsonify(materias)
+
+@app.route('/api/materias', methods=['POST'])
+def criar_materia():
+    uid = session.get('uid')
+    if not uid:
+        return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
+    
+    data = request.get_json()
+    nome = data.get('nome', '').strip()
+    cor = data.get('cor', 'c-blue')
+    
+    if not nome:
+        return jsonify({'status': 'erro', 'mensagem': 'Nome obrigatório'}), 400
+    
+    materias_ref = db.collection('usuarios').document(uid).collection('materias')
+    doc = materias_ref.add({'nome': nome, 'cor': cor, 'estudos': 0})
+    return jsonify({'status': 'ok', 'id': doc[1].id})
+
+@app.route('/api/materias/<materia_id>', methods=['DELETE'])
+def deletar_materia(materia_id):
+    uid = session.get('uid')
+    if not uid:
+        return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
+    
+    db.collection('usuarios').document(uid).collection('materias').document(materia_id).delete()
+    return jsonify({'status': 'ok'})
 
 if __name__ == '__main__':
     app.run(debug=True)
