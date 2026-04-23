@@ -72,10 +72,6 @@
         const avisoGeral   = document.getElementById('avisoGeral');
         let timeoutAviso;
 
-        document.getElementById('btnAbrirInfo').addEventListener('click', () => modalInfo.style.display = 'flex');
-        document.getElementById('btnFecharInfo').addEventListener('click', () => modalInfo.style.display = 'none');
-        modalInfo.addEventListener('click', e => { if (e.target === modalInfo) modalInfo.style.display = 'none'; });
-
         function mostrarAviso(mensagem) {
             avisoGeral.textContent = mensagem;
             avisoGeral.style.display = 'block';
@@ -158,12 +154,27 @@
             validarFormulario();
         });
 
-        btnEnviar.addEventListener('click', () => {
+        btnEnviar.addEventListener('click', async () => {
             const opcaoSelecionada = document.querySelector('.opcao.selecionada').dataset.opcao;
             const arquivo = inputArquivo.files[0];
-            
-            console.log("Enviando arquivo:", arquivo.name);
-            console.log("Opção escolhida:", opcaoSelecionada);
+
+            const formData = new FormData();
+            formData.append('arquivo', arquivo);
+            formData.append('opcao', opcaoSelecionada);
+
+            btnEnviar.disabled = true;
+            btnEnviar.textContent = 'Processando...';
+
+            const res = await fetch('/api/processar', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await res.json();
+            console.log(data);
+
+            btnEnviar.disabled = false;
+            btnEnviar.textContent = 'Enviar e Analisar';
         });
 
     </script>
