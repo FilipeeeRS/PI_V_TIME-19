@@ -171,6 +171,19 @@
             });
 
             const data = await res.json();
+
+            console.log(data);
+
+            // pega a div onde vai mostrar o resultado
+            const resultadoDiv = document.getElementById('resultado');
+
+            // renderiza na tela
+            resultadoDiv.innerHTML = `
+                <h2>Resumo</h2>
+                <pre>${data.resumo}</pre>
+            `;
+
+            const data = await res.json();
             console.log(data);
 
             btnEnviar.disabled = false;
