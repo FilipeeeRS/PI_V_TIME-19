@@ -1,0 +1,29 @@
+{% extends "home_base.html" %}
+
+{% block titulo %}Estudo{% endblock %}
+{% block titulo_pagina %}ESTUDO{% endblock %}
+
+{% block estilos %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/estudo.css') }}">
+{% endblock %}
+
+{% block conteudo %}
+        <div class="content-area estudo-page">
+            <section class="estudo-header">
+                <div>
+                    <span class="estudo-label">Arquivo analisado</span>
+                    <h2>{{ estudo.nome }}</h2>
+                </div>
+                <span class="estudo-opcao">{{ estudo.opcao }}</span>
+            </section>
+
+            <section class="estudo-preview">
+                <span class="estudo-label">Texto extraido do PDF</span>
+                <p>
+                    Esta pagina recebe o pdf processado. Na proxima etapa,
+                    vai mostrar o resultado gerado pela IA.
+                </p>
+                <pre>{{ estudo.texto_extraido }}</pre>
+            </section>
+        </div>
+{% endblock %}

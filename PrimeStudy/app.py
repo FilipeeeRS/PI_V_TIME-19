@@ -1,6 +1,6 @@
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, abort
 import firebase_config
-from firebase_admin import auth
+from firebase_admin import auth, firestore
 import os
 from dotenv import load_dotenv
 from firebase_config import db
@@ -53,6 +53,25 @@ def novo_estudo():
 @app.route('/historico')
 def historico():
     return render_template('historico.html', pagina_ativa='historico')
+
+@app.route('/estudo/<estudo_id>')
+def visualizar_estudo(estudo_id):
+    uid = session.get('uid')
+    if not uid:
+        return redirect(url_for('login'))
+
+    estudo_ref = db.collection('usuarios').document(uid).collection('estudos').document(estudo_id)
+    estudo_doc = estudo_ref.get()
+
+    if not estudo_doc.exists:
+        abort(404)
+
+    return render_template(
+        'estudo.html',
+        pagina_ativa='historico',
+        estudo_id=estudo_id,
+        estudo=estudo_doc.to_dict()
+    )
 
 
 @app.route('/api/sessao', methods=['POST'])
@@ -134,11 +153,20 @@ def processar_pdf():
     if not texto.strip():
         return jsonify({'status': 'erro', 'mensagem': 'Não foi possível extrair texto do PDF'}), 400
 
-    # Por enquanto retorna o texto extraído pra testarmos
+    estudo_ref = db.collection('usuarios').document(uid).collection('estudos').document()
+    estudo_ref.set({
+        'nome': arquivo.filename,
+        'opcao': opcao,
+        'status': 'processado',
+        'texto_extraido': texto[:500],
+        'criado_em': firestore.SERVER_TIMESTAMP
+    })
+
     return jsonify({
         'status': 'ok',
+        'id': estudo_ref.id,
         'opcao': opcao,
-        'texto_extraido': texto[:500]  # primeiros 500 caracteres pra testar
+        'redirect_url': url_for('visualizar_estudo', estudo_id=estudo_ref.id)
     })
 
 if __name__ == '__main__':

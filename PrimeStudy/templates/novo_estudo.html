@@ -165,29 +165,26 @@
             btnEnviar.disabled = true;
             btnEnviar.textContent = 'Processando...';
 
-            const res = await fetch('/api/processar', {
-                method: 'POST',
-                body: formData
-            });
+            try {
+                const res = await fetch('/api/processar', {
+                    method: 'POST',
+                    body: formData
+                });
 
-            const data = await res.json();
+                const data = await res.json();
 
-            console.log(data);
+                if (!res.ok || data.status !== 'ok') {
+                    mostrarAviso(data.mensagem || 'Erro ao processar o PDF.');
+                    return;
+                }
 
-            // pega a div onde vai mostrar o resultado
-            const resultadoDiv = document.getElementById('resultado');
-
-            // renderiza na tela
-            resultadoDiv.innerHTML = `
-                <h2>Resumo</h2>
-                <pre>${data.resumo}</pre>
-            `;
-
-            const data = await res.json();
-            console.log(data);
-
-            btnEnviar.disabled = false;
-            btnEnviar.textContent = 'Enviar e Analisar';
+                window.location.href = data.redirect_url;
+            } catch (error) {
+                mostrarAviso('Erro de conexao. Tente novamente.');
+            } finally {
+                btnEnviar.disabled = false;
+                btnEnviar.textContent = 'Enviar e Analisar';
+            }
         });
 
     </script>

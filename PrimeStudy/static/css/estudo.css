@@ -1,0 +1,77 @@
+.estudo-page {
+    flex-grow: 1;
+    padding: 0 40px 40px 40px;
+    overflow-y: auto;
+}
+
+.estudo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 28px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.estudo-header h2 {
+    margin: 6px 0 0 0;
+    max-width: 720px;
+    overflow-wrap: anywhere;
+    font-size: 28px;
+}
+
+.estudo-label {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.estudo-opcao {
+    border: 1px solid var(--color-primary);
+    border-radius: 999px;
+    color: var(--color-primary);
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 8px 14px;
+    text-transform: uppercase;
+}
+
+.estudo-preview {
+    max-width: 900px;
+}
+
+.estudo-preview p {
+    color: var(--color-text-muted);
+    line-height: 1.6;
+    margin: 10px 0 20px 0;
+}
+
+.estudo-preview pre {
+    background: #121212;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    color: var(--color-text);
+    font-family: Consolas, Monaco, monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+    max-height: 420px;
+    overflow: auto;
+    padding: 20px;
+    white-space: pre-wrap;
+}
+
+@media (max-width: 720px) {
+    .estudo-page {
+        padding: 0 20px 32px 20px;
+    }
+
+    .estudo-header {
+        flex-direction: column;
+    }
+}
