@@ -28,6 +28,7 @@ body {
     flex-direction: column;
     padding: 20px;
     flex-shrink: 0;
+    overflow-y: auto;
 }
 
 .profile-section {

@@ -8,6 +8,7 @@ import pdfplumber
 import io 
 
 load_dotenv()
+print("A CHAVE É:", os.getenv('FIREBASE_API_KEY'))
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'troque-por-uma-chave-secreta-forte')
@@ -23,7 +24,7 @@ def inject_session():
             .document(uid)
             .collection('estudos')
             .order_by('criado_em', direction=firestore.Query.DESCENDING)
-            .limit(6)
+            .limit(50)
         )
 
         for doc in estudos_ref.stream():
@@ -148,6 +149,15 @@ def deletar_materia(materia_id):
         return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
     
     db.collection('usuarios').document(uid).collection('materias').document(materia_id).delete()
+    return jsonify({'status': 'ok'})
+
+@app.route('/api/estudos/<estudo_id>', methods=['DELETE'])
+def deletar_estudo(estudo_id):
+    uid = session.get('uid')
+    if not uid:
+        return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
+    
+    db.collection('usuarios').document(uid).collection('estudos').document(estudo_id).delete()
     return jsonify({'status': 'ok'})
 
 @app.route('/api/processar', methods=['POST'])
