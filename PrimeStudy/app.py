@@ -14,7 +14,27 @@ app.secret_key = os.getenv('SECRET_KEY', 'troque-por-uma-chave-secreta-forte')
 
 @app.context_processor
 def inject_session():
-    return dict(session=session)
+    recentes = []
+    uid = session.get('uid')
+
+    if uid:
+        estudos_ref = (
+            db.collection('usuarios')
+            .document(uid)
+            .collection('estudos')
+            .order_by('criado_em', direction=firestore.Query.DESCENDING)
+            .limit(6)
+        )
+
+        for doc in estudos_ref.stream():
+            estudo = doc.to_dict()
+            recentes.append({
+                'id': doc.id,
+                'nome': estudo.get('nome', 'Estudo sem nome'),
+                'opcao': estudo.get('opcao', '')
+            })
+
+    return dict(session=session, estudos_recentes=recentes)
 
 FIREBASE_CONFIG = {
     'firebase_api_key':            os.getenv('FIREBASE_API_KEY'),
@@ -52,7 +72,7 @@ def novo_estudo():
 
 @app.route('/historico')
 def historico():
-    return render_template('historico.html', pagina_ativa='historico')
+    return redirect(url_for('home_page'))
 
 @app.route('/estudo/<estudo_id>')
 def visualizar_estudo(estudo_id):
@@ -68,7 +88,7 @@ def visualizar_estudo(estudo_id):
 
     return render_template(
         'estudo.html',
-        pagina_ativa='historico',
+        pagina_ativa='estudo',
         estudo_id=estudo_id,
         estudo=estudo_doc.to_dict()
     )

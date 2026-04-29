@@ -40,14 +40,28 @@
             <a href="{{ url_for('novo_estudo') }}" style="text-decoration: none; color: inherit;">
                 <li class="{{ 'active' if pagina_ativa == 'novo_estudo' else '' }}">NOVO ESTUDO</li>
             </a>
-            <a href="{{ url_for('historico') }}" style="text-decoration: none; color: inherit;">
-                <li class="{{ 'active' if pagina_ativa == 'historico' else '' }}">HISTÓRICO</li>
-            </a>
             <a href="{{ url_for('materias') }}" style="text-decoration: none; color: inherit;">
                 <li class="{{ 'active' if pagina_ativa == 'materias' else '' }}">MATÉRIAS</li>
             </a>
             <hr class="menu-divider">
-            <p class="menu-hint">Seus estudos aparecerão aqui.</p>
+            <div class="recentes-section">
+                <p class="menu-section-title">ESTUDOS</p>
+                {% if estudos_recentes %}
+                    <div class="recentes-lista">
+                        {% for estudo_item in estudos_recentes %}
+                            <a
+                                href="{{ url_for('visualizar_estudo', estudo_id=estudo_item.id) }}"
+                                class="recente-link {{ 'active' if pagina_ativa == 'estudo' and estudo_id == estudo_item.id else '' }}"
+                            >
+                                <span class="recente-nome">{{ estudo_item.nome }}</span>
+                                <span class="recente-meta">{{ estudo_item.opcao }}</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="menu-hint">Seus estudos recentes aparecerão aqui.</p>
+                {% endif %}
+            </div>
         </ul>
 
         <div class="sidebar-footer" id="btnAbrirInfo">
