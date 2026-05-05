@@ -1,23 +1,28 @@
 {% extends "home_base.html" %}
 
-{% block titulo %}Estudo{% endblock %}
-{% block titulo_pagina %}ESTUDO{% endblock %}
+{% block titulo %}{{ estudo.nome }}{% endblock %}
+{% block titulo_pagina %}[Nome da Matéria Aqui]{% endblock %}
 
 {% block estilos %}
+<!-- Importamos os botões da outra tela, e também o CSS exclusivo desta tela -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/novo_estudo.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/estudo.css') }}">
 {% endblock %}
 
 {% block conteudo %}
         <div class="content-area estudo-page">
+            
             <section class="estudo-header">
-                <div>
+                <div class="header-info">
+                    <span class="estudo-label">Estudo Atual</span>
                     <h2>{{ estudo.nome }}</h2>
                 </div>
             </section>
 
-            <section class="estudo-preview">
-                
-                <div class="opcoes-grid" id="opcoesGrid">
+            <!-- Novo Painel de Controle elegante para os botões -->
+            <section class="painel-controle">
+                <h3 class="painel-titulo">O que você deseja gerar ?</h3>
+                <div class="opcoes-grid painel-grid" id="opcoesGrid">
                     <div class="opcao" data-opcao="resumo">
                         <span class="opcao-icone">📝</span>
                         <span class="opcao-texto">Resumo</span>
@@ -43,13 +48,17 @@
                         <span class="opcao-texto">Tópicos</span>
                     </div>
                 </div>
-        
             </section>
+
+            <!-- Correção: O conteúdo gerado agora fica DENTRO da .estudo-page -->
+            {% if estudo.conteudo and estudo.conteudo.resumo %}
+            <section class="resultado-gerado">
+                <h3>📝 Resumo Gerado</h3>
+                <pre>{{ estudo.conteudo.resumo }}</pre>
+            </section>
+            {% endif %}
+            
         </div>
-        {% if estudo.conteudo and estudo.conteudo.resumo %}
-            <h2>Resumo</h2>
-            <pre>{{ estudo.conteudo.resumo }}</pre>
-        {% endif %}
 {% endblock %}
 
 {% block scripts %}
@@ -59,6 +68,10 @@
         document.querySelectorAll('.opcao').forEach(op => {
             op.addEventListener('click', async () => {
                 const tipo = op.dataset.opcao;
+                
+                // Mudar visualmente o botão para mostrar que está carregando
+                op.style.opacity = '0.5';
+                op.querySelector('.opcao-texto').innerText = 'Gerando...';
 
                 console.log("Gerando:", tipo);
 

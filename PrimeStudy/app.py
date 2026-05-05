@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from firebase_config import db
 import pdfplumber
 import io 
-from services.gemini_services import gerar_resumo
+#from services.gemini_services import gerar_resumo
 
 
 load_dotenv()
@@ -162,6 +162,22 @@ def deletar_estudo(estudo_id):
     db.collection('usuarios').document(uid).collection('estudos').document(estudo_id).delete()
     return jsonify({'status': 'ok'})
 
+@app.route('/api/estudos/<estudo_id>', methods=['PUT'])
+def renomear_estudo(estudo_id):
+    uid = session.get('uid')
+    if not uid:
+        return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
+    
+    data = request.get_json()
+    novo_nome = data.get('nome')
+
+    if novo_nome:
+        db.collection('usuarios').document(uid).collection('estudos').document(estudo_id).update({
+            'nome': novo_nome
+        })
+        return jsonify({'status': 'ok'})
+    return jsonify({'status': 'erro', 'mensagem': 'Nome não fornecido'}), 400
+
 ### criar novo estudo
 @app.route('/api/processar', methods=['POST'])
 def processar_pdf():
@@ -217,7 +233,7 @@ def gerar_conteudo():
     texto = estudo.get('texto')
 
     if tipo == 'resumo':
-        resultado = gerar_resumo(texto)
+      #  resultado = gerar_resumo(texto)
 
         doc_ref.update({
             'conteudo.resumo': resultado
