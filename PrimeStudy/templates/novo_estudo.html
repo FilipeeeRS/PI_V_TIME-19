@@ -26,36 +26,11 @@
                 </div>
 
                 <span id="avisoGeral" style="color: #ff4d4d; font-size: 11px; margin-bottom: 20px; display: none; text-align: center; width: 100%; font-weight: bold;"></span>
-
-                <p class="opcoes-label">O que deseja?</p>
-                <div class="opcoes-grid" id="opcoesGrid">
-                    <div class="opcao" data-opcao="resumo">
-                        <span class="opcao-icone">📝</span>
-                        <span class="opcao-texto">Resumo</span>
-                    </div>
-                    <div class="opcao" data-opcao="flashcard">
-                        <span class="opcao-icone">🃏</span>
-                        <span class="opcao-texto">Flashcards</span>
-                    </div>
-                    <div class="opcao" data-opcao="questoes">
-                        <span class="opcao-icone">❓</span>
-                        <span class="opcao-texto">Questões</span>
-                    </div>
-                    <div class="opcao" data-opcao="mapa">
-                        <span class="opcao-icone">🗺️</span>
-                        <span class="opcao-texto">Mapa Mental</span>
-                    </div>
-                    <div class="opcao" data-opcao="checklist">
-                        <span class="opcao-icone">✅</span>
-                        <span class="opcao-texto">Checklist</span>
-                    </div>
-                    <div class="opcao" data-opcao="topicos">
-                        <span class="opcao-icone">📌</span>
-                        <span class="opcao-texto">Tópicos</span>
-                    </div>
+                <div class="opcao">
+                    <input type="text" id="nomeEstudo" placeholder="Nome do estudo" />
                 </div>
-
-                <button class="btn-enviar" id="btnEnviar" disabled>Enviar e Analisar</button>
+                
+                <button class="btn-enviar" id="btnEnviar" disabled>Criar estudo</button>
             </div>
         </div>
 {% endblock %}
@@ -81,8 +56,8 @@
 
         function validarFormulario() {
             const temArquivo = inputArquivo.files.length > 0;
-            const temOpcao   = document.querySelector('.opcao.selecionada') !== null;
-            btnEnviar.disabled = !(temArquivo && temOpcao);
+            const temNome   = document.getElementById('nomeEstudo').value.trim() !== '';
+            btnEnviar.disabled = !(temArquivo && temNome);
         }
 
         opcoes.forEach(opcao => {
@@ -118,6 +93,8 @@
                 }
             }
         });
+
+        document.getElementById('nomeEstudo').addEventListener('input', validarFormulario);
 
         uploadArea.addEventListener('dragover', e => { 
             e.preventDefault(); 
@@ -155,12 +132,11 @@
         });
 
         btnEnviar.addEventListener('click', async () => {
-            const opcaoSelecionada = document.querySelector('.opcao.selecionada').dataset.opcao;
             const arquivo = inputArquivo.files[0];
 
             const formData = new FormData();
             formData.append('arquivo', arquivo);
-            formData.append('opcao', opcaoSelecionada);
+            formData.append('nome', document.getElementById('nomeEstudo').value);
 
             btnEnviar.disabled = true;
             btnEnviar.textContent = 'Processando...';

@@ -39,6 +39,7 @@
     font-weight: bold;
     padding: 8px 14px;
     text-transform: uppercase;
+    max-width: 200px;
 }
 
 .estudo-preview {

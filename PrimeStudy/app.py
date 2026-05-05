@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from firebase_config import db
 import pdfplumber
 import io 
+from services.gemini_services import gerar_resumo
+
 
 load_dotenv()
 print("A CHAVE É:", os.getenv('FIREBASE_API_KEY'))
@@ -160,6 +162,7 @@ def deletar_estudo(estudo_id):
     db.collection('usuarios').document(uid).collection('estudos').document(estudo_id).delete()
     return jsonify({'status': 'ok'})
 
+### criar novo estudo
 @app.route('/api/processar', methods=['POST'])
 def processar_pdf():
     uid = session.get('uid')
@@ -167,7 +170,7 @@ def processar_pdf():
         return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
 
     arquivo = request.files.get('arquivo')
-    opcao = request.form.get('opcao')
+    nome = request.form.get('nome') or arquivo.filename
 
     if not arquivo:
         return jsonify({'status': 'erro', 'mensagem': 'Nenhum arquivo enviado'}), 400
@@ -184,20 +187,43 @@ def processar_pdf():
         return jsonify({'status': 'erro', 'mensagem': 'Não foi possível extrair texto do PDF'}), 400
 
     estudo_ref = db.collection('usuarios').document(uid).collection('estudos').document()
+    
     estudo_ref.set({
-        'nome': arquivo.filename,
-        'opcao': opcao,
-        'status': 'processado',
-        'texto_extraido': texto[:500],
+        'nome': nome,
+        'texto': texto,
+        'conteudo': {}, # fazer dps com a IA
         'criado_em': firestore.SERVER_TIMESTAMP
     })
 
     return jsonify({
         'status': 'ok',
-        'id': estudo_ref.id,
-        'opcao': opcao,
         'redirect_url': url_for('visualizar_estudo', estudo_id=estudo_ref.id)
     })
+
+# gerar resumo
+@app.route('/api/gerar', methods=['POST'])
+def gerar_conteudo():
+    uid = session.get('uid')
+    if not uid:
+        return jsonify({'status': 'erro'}), 401
+
+    data = request.get_json()
+    estudo_id = data.get('estudo_id')
+    tipo = data.get('tipo')
+
+    doc_ref = db.collection('usuarios').document(uid).collection('estudos').document(estudo_id)
+    estudo = doc_ref.get().to_dict()
+
+    texto = estudo.get('texto')
+
+    if tipo == 'resumo':
+        resultado = gerar_resumo(texto)
+
+        doc_ref.update({
+            'conteudo.resumo': resultado
+        })
+
+    return jsonify({'status': 'ok'})
 
 if __name__ == '__main__':
     app.run(debug=True)

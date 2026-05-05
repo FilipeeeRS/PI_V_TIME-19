@@ -4,26 +4,75 @@
 {% block titulo_pagina %}ESTUDO{% endblock %}
 
 {% block estilos %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/estudo.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/novo_estudo.css') }}">
 {% endblock %}
 
 {% block conteudo %}
         <div class="content-area estudo-page">
             <section class="estudo-header">
                 <div>
-                    <span class="estudo-label">Arquivo analisado</span>
                     <h2>{{ estudo.nome }}</h2>
                 </div>
-                <span class="estudo-opcao">{{ estudo.opcao }}</span>
             </section>
 
             <section class="estudo-preview">
-                <span class="estudo-label">Texto extraido do PDF</span>
-                <p>
-                    Esta pagina recebe o pdf processado. Na proxima etapa,
-                    vai mostrar o resultado gerado pela IA.
-                </p>
-                <pre>{{ estudo.texto_extraido }}</pre>
+                
+                <div class="opcoes-grid" id="opcoesGrid">
+                    <div class="opcao" data-opcao="resumo">
+                        <span class="opcao-icone">📝</span>
+                        <span class="opcao-texto">Resumo</span>
+                    </div>
+                    <div class="opcao" data-opcao="flashcard">
+                        <span class="opcao-icone">🃏</span>
+                        <span class="opcao-texto">Flashcards</span>
+                    </div>
+                    <div class="opcao" data-opcao="questoes">
+                        <span class="opcao-icone">❓</span>
+                        <span class="opcao-texto">Questões</span>
+                    </div>
+                    <div class="opcao" data-opcao="mapa">
+                        <span class="opcao-icone">🗺️</span>
+                        <span class="opcao-texto">Mapa Mental</span>
+                    </div>
+                    <div class="opcao" data-opcao="checklist">
+                        <span class="opcao-icone">✅</span>
+                        <span class="opcao-texto">Checklist</span>
+                    </div>
+                    <div class="opcao" data-opcao="topicos">
+                        <span class="opcao-icone">📌</span>
+                        <span class="opcao-texto">Tópicos</span>
+                    </div>
+                </div>
+        
             </section>
         </div>
+        {% if estudo.conteudo and estudo.conteudo.resumo %}
+            <h2>Resumo</h2>
+            <pre>{{ estudo.conteudo.resumo }}</pre>
+        {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        const ESTUDO_ID = "{{ estudo_id }}";
+
+        document.querySelectorAll('.opcao').forEach(op => {
+            op.addEventListener('click', async () => {
+                const tipo = op.dataset.opcao;
+
+                console.log("Gerando:", tipo);
+
+                await fetch('/api/gerar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        estudo_id: ESTUDO_ID,
+                        tipo: tipo
+                    })
+                });
+
+                location.reload();
+            });
+        });
+    </script>
 {% endblock %}
