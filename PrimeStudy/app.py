@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from firebase_config import db
 import pdfplumber
 import io 
-#from services.gemini_services import gerar_resumo
+from services.gemini_services import gerar_resumo
 
 
 load_dotenv()
@@ -218,7 +218,7 @@ def processar_pdf():
 
 # gerar resumo
 @app.route('/api/gerar', methods=['POST'])
-def gerar_conteudo():
+def gerar_conteudo_route():
     uid = session.get('uid')
     if not uid:
         return jsonify({'status': 'erro'}), 401
@@ -229,17 +229,13 @@ def gerar_conteudo():
 
     doc_ref = db.collection('usuarios').document(uid).collection('estudos').document(estudo_id)
     estudo = doc_ref.get().to_dict()
+    texto = estudo.get('texto', '')
 
-    texto = estudo.get('texto')
+    resultado = gerar_conteudo(tipo, texto)
 
-    if tipo == 'resumo':
-      #  resultado = gerar_resumo(texto)
+    doc_ref.update({f'conteudo.{tipo}': resultado})
 
-        doc_ref.update({
-            'conteudo.resumo': resultado
-        })
-
-    return jsonify({'status': 'ok'})
+    return jsonify({'status': 'ok', 'conteudo': resultado})
 
 if __name__ == '__main__':
     app.run(debug=True)

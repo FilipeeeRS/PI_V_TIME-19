@@ -4,88 +4,170 @@
 {% block titulo_pagina %}[Nome da Matéria Aqui]{% endblock %}
 
 {% block estilos %}
-<!-- Importamos os botões da outra tela, e também o CSS exclusivo desta tela -->
-<link rel="stylesheet" href="{{ url_for('static', filename='css/novo_estudo.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/estudo.css') }}">
 {% endblock %}
 
 {% block conteudo %}
-        <div class="content-area estudo-page">
-            
-            <section class="estudo-header">
-                <div class="header-info">
-                    <span class="estudo-label">Estudo Atual</span>
-                    <h2>{{ estudo.nome }}</h2>
-                </div>
-            </section>
+<div class="chat-wrapper">
 
-            <!-- Novo Painel de Controle elegante para os botões -->
-            <section class="painel-controle">
-                <h3 class="painel-titulo">O que você deseja gerar ?</h3>
-                <div class="opcoes-grid painel-grid" id="opcoesGrid">
-                    <div class="opcao" data-opcao="resumo">
-                        <span class="opcao-icone">📝</span>
-                        <span class="opcao-texto">Resumo</span>
-                    </div>
-                    <div class="opcao" data-opcao="flashcard">
-                        <span class="opcao-icone">🃏</span>
-                        <span class="opcao-texto">Flashcards</span>
-                    </div>
-                    <div class="opcao" data-opcao="questoes">
-                        <span class="opcao-icone">❓</span>
-                        <span class="opcao-texto">Questões</span>
-                    </div>
-                    <div class="opcao" data-opcao="mapa">
-                        <span class="opcao-icone">🗺️</span>
-                        <span class="opcao-texto">Mapa Mental</span>
-                    </div>
-                    <div class="opcao" data-opcao="checklist">
-                        <span class="opcao-icone">✅</span>
-                        <span class="opcao-texto">Checklist</span>
-                    </div>
-                    <div class="opcao" data-opcao="topicos">
-                        <span class="opcao-icone">📌</span>
-                        <span class="opcao-texto">Tópicos</span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Correção: O conteúdo gerado agora fica DENTRO da .estudo-page -->
-            {% if estudo.conteudo and estudo.conteudo.resumo %}
-            <section class="resultado-gerado">
-                <h3>📝 Resumo Gerado</h3>
-                <pre>{{ estudo.conteudo.resumo }}</pre>
-            </section>
-            {% endif %}
-            
+    <!-- Header fixo com nome do estudo -->
+    <header class="chat-header">
+        <div class="chat-header-info">
+            <span class="chat-label">Estudo Atual</span>
+            <h2>{{ estudo.nome }}</h2>
         </div>
+    </header>
+
+    <!-- Área de mensagens -->
+    <div class="chat-messages" id="chatMessages">
+
+        <!-- Mensagem de boas-vindas da IA -->
+        <div class="msg msg-ai" id="welcomeMsg">
+            <div class="msg-avatar">✦</div>
+            <div class="msg-body">
+                <p>Olá! Seu material foi carregado com sucesso. O que você quer gerar a partir dele?</p>
+                <div class="opcoes-chips" id="opcoesIniciais">
+                    <button class="chip" data-opcao="resumo">📝 Resumo</button>
+                    <button class="chip" data-opcao="flashcard">🃏 Flashcards</button>
+                    <button class="chip" data-opcao="questoes">❓ Questões</button>
+                    <button class="chip" data-opcao="mapa">🗺️ Mapa Mental</button>
+                    <button class="chip" data-opcao="checklist">✅ Checklist</button>
+                    <button class="chip" data-opcao="topicos">📌 Tópicos</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conteúdo já gerado anteriormente (se existir) -->
+        {% if estudo.conteudo and estudo.conteudo.resumo %}
+        <div class="msg msg-user">
+            <div class="msg-body">
+                <p>📝 Resumo</p>
+            </div>
+        </div>
+        <div class="msg msg-ai">
+            <div class="msg-avatar">✦</div>
+            <div class="msg-body">
+                <div class="resultado-content">{{ estudo.conteudo.resumo }}</div>
+                <div class="opcoes-chips">
+                    <button class="chip" data-opcao="resumo">📝 Resumo</button>
+                    <button class="chip" data-opcao="flashcard">🃏 Flashcards</button>
+                    <button class="chip" data-opcao="questoes">❓ Questões</button>
+                    <button class="chip" data-opcao="mapa">🗺️ Mapa Mental</button>
+                    <button class="chip" data-opcao="checklist">✅ Checklist</button>
+                    <button class="chip" data-opcao="topicos">📌 Tópicos</button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+</div>
 {% endblock %}
 
 {% block scripts %}
-    <script>
-        const ESTUDO_ID = "{{ estudo_id }}";
+<script>
+    const ESTUDO_ID = "{{ estudo_id }}";
+    const chatMessages = document.getElementById('chatMessages');
 
-        document.querySelectorAll('.opcao').forEach(op => {
-            op.addEventListener('click', async () => {
-                const tipo = op.dataset.opcao;
-                
-                // Mudar visualmente o botão para mostrar que está carregando
-                op.style.opacity = '0.5';
-                op.querySelector('.opcao-texto').innerText = 'Gerando...';
+    const LABELS = {
+        resumo:    '📝 Resumo',
+        flashcard: '🃏 Flashcards',
+        questoes:  '❓ Questões',
+        mapa:      '🗺️ Mapa Mental',
+        checklist: '✅ Checklist',
+        topicos:   '📌 Tópicos',
+    };
 
-                console.log("Gerando:", tipo);
+    const CHIPS_HTML = `
+        <div class="opcoes-chips">
+            <button class="chip" data-opcao="resumo">📝 Resumo</button>
+            <button class="chip" data-opcao="flashcard">🃏 Flashcards</button>
+            <button class="chip" data-opcao="questoes">❓ Questões</button>
+            <button class="chip" data-opcao="mapa">🗺️ Mapa Mental</button>
+            <button class="chip" data-opcao="checklist">✅ Checklist</button>
+            <button class="chip" data-opcao="topicos">📌 Tópicos</button>
+        </div>`;
 
-                await fetch('/api/gerar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        estudo_id: ESTUDO_ID,
-                        tipo: tipo
-                    })
-                });
+    function scrollToBottom() {
+        chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+    }
 
-                location.reload();
+    function addUserMessage(label) {
+        const msg = document.createElement('div');
+        msg.className = 'msg msg-user msg-enter';
+        msg.innerHTML = `<div class="msg-body"><p>${label}</p></div>`;
+        chatMessages.appendChild(msg);
+        scrollToBottom();
+    }
+
+    function addLoadingMessage() {
+        const msg = document.createElement('div');
+        msg.className = 'msg msg-ai msg-enter';
+        msg.id = 'loadingMsg';
+        msg.innerHTML = `
+            <div class="msg-avatar">✦</div>
+            <div class="msg-body">
+                <div class="loading-dots">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>`;
+        chatMessages.appendChild(msg);
+        scrollToBottom();
+        return msg;
+    }
+
+    function addAiMessage(content) {
+        const loadingMsg = document.getElementById('loadingMsg');
+        if (loadingMsg) loadingMsg.remove();
+
+        const msg = document.createElement('div');
+        msg.className = 'msg msg-ai msg-enter';
+        msg.innerHTML = `
+            <div class="msg-avatar">✦</div>
+            <div class="msg-body">
+                <div class="resultado-content">${content}</div>
+                ${CHIPS_HTML}
+            </div>`;
+        chatMessages.appendChild(msg);
+        bindChips(msg);
+        scrollToBottom();
+    }
+
+    function disableAllChips() {
+        document.querySelectorAll('.chip').forEach(c => c.disabled = true);
+    }
+
+    async function handleOpcao(tipo) {
+        disableAllChips();
+
+        addUserMessage(LABELS[tipo] || tipo);
+        addLoadingMessage();
+
+        try {
+            const res = await fetch('/api/gerar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ estudo_id: ESTUDO_ID, tipo })
             });
+
+            const data = await res.json();
+            const conteudo = data.conteudo || data.resultado || 'Conteúdo gerado com sucesso!';
+            addAiMessage(conteudo);
+        } catch (err) {
+            const loadingMsg = document.getElementById('loadingMsg');
+            if (loadingMsg) loadingMsg.remove();
+            addAiMessage('Ocorreu um erro ao gerar o conteúdo. Tente novamente.');
+        }
+    }
+
+    function bindChips(container) {
+        container.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', () => handleOpcao(chip.dataset.opcao));
         });
-    </script>
+    }
+
+    // Inicializa os chips da mensagem de boas-vindas
+    bindChips(document.getElementById('chatMessages'));
+</script>
 {% endblock %}
