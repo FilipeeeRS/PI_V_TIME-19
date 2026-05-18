@@ -1,7 +1,7 @@
 {% extends "home_base.html" %}
 
 {% block titulo %}{{ estudo.nome }}{% endblock %}
-{% block titulo_pagina %}[Nome da Matéria Aqui]{% endblock %}
+{% block titulo_pagina %}{{ nome_materia }}{% endblock %}
 
 {% block estilos %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/estudo.css') }}">

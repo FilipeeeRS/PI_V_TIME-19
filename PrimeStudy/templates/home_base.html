@@ -164,6 +164,32 @@
         </div>
     </div>
 
+    <div id="modalMoverMateria" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 320px; border-radius: 20px; padding: 30px 25px;">
+            <h2 style="font-size: 20px; margin-bottom: 15px; font-weight: bold;">Mover para Matéria</h2>
+            
+            <select id="selectMateria" style="width: 100%; padding: 12px; margin-bottom: 25px; border-radius: 10px; border: 1px solid #444; background: #222; color: white; font-size: 14px; cursor: pointer;">
+                <option value="">Carregando...</option>
+            </select>
+
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button class="btn-modal" id="btnCancelarMover" style="background-color: #333; width: 100%; border-radius: 50px; font-size: 12px;">CANCELAR</button>
+                <button class="btn-modal" id="btnConfirmarMover" style="background-color: var(--color-primary); width: 100%; border-radius: 50px; font-size: 12px;">SALVAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalRemoverMateria" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 320px; border-radius: 20px; padding: 30px 25px;">
+            <h2 style="font-size: 20px; margin-bottom: 10px; font-weight: bold;">Remover da Matéria</h2>
+            <p style="margin-bottom: 25px; font-size: 14px; color: var(--color-text-muted);">Este estudo ficará solto na tela inicial. Ele não será excluído.</p>
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button class="btn-modal" id="btnCancelarRemoverMateria" style="background-color: #333; width: 100%; border-radius: 50px; font-size: 12px;">CANCELAR</button>
+                <button class="btn-modal" id="btnConfirmarRemoverMateria" style="background-color: #ff4d4d; width: 100%; border-radius: 50px; font-size: 12px;">REMOVER</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modalInfo" class="modal-overlay modal-info">
         <div class="modal-info-content">
             <div class="modal-info-header">
@@ -318,24 +344,87 @@
             }
         });
 
-        // ==============================================================
-        // ÁREA DE IMPLEMENTAÇÃO FUTURA: MATÉRIAS E CATEGORIAS
-        // Aqui ficarão as lógicas de backend para organizar os estudos
-        // ==============================================================
+      
+        // logica da remover e mover matérias
+        let estudoIdParaMateria = null;
+        const modalMover = document.getElementById('modalMoverMateria');
+        const modalRemover = document.getElementById('modalRemoverMateria');
+        const selectMateria = document.getElementById('selectMateria');
 
-        function moverParaMateria(estudoId) {
-            // TODO: No futuro, isso vai abrir um Modal listando as matérias que o usuário tem criadas
-            // Depois, fará um fetch() com método PUT ou POST avisando o Python para atrelar o estudo à matéria
-            console.log("Preparado para mover o estudo ID:", estudoId);
-            alert('A tela de enviar para uma matéria será implementada aqui em breve!');
+        // 1. Abre a tela de Mover e puxa as matérias do banco de dados
+        async function moverParaMateria(estudoId) {
+            estudoIdParaMateria = estudoId;
+            modalMover.style.display = 'flex';
+            selectMateria.innerHTML = '<option value="">Carregando matérias...</option>';
+
+            try {
+                const res = await fetch('/api/materias');
+                if (res.ok) {
+                    const materias = await res.json();
+                    if (materias.length === 0) {
+                        selectMateria.innerHTML = '<option value="">Crie uma matéria primeiro!</option>';
+                    } else {
+                        selectMateria.innerHTML = '<option value="">Selecione a matéria...</option>';
+                        materias.forEach(m => {
+                            selectMateria.innerHTML += `<option value="${m.id}">${m.nome}</option>`;
+                        });
+                    }
+                }
+            } catch (err) {
+                selectMateria.innerHTML = '<option value="">Erro ao carregar</option>';
+            }
         }
 
+        // 2. Confirma a movimentação
+        document.getElementById('btnConfirmarMover').addEventListener('click', async () => {
+            const materiaId = selectMateria.value;
+            if (!materiaId) return alert('Por favor, selecione uma matéria!');
+
+            document.getElementById('btnConfirmarMover').innerText = "Salvando...";
+
+            try {
+                const res = await fetch(`/api/estudos/${estudoIdParaMateria}/materia`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ materia_id: materiaId })
+                });
+
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Erro ao vincular matéria.');
+                    document.getElementById('btnConfirmarMover').innerText = "SALVAR";
+                }
+            } catch (error) { console.error(error); }
+        });
+
+        // 3. Abre o modal para Remover da Matéria
         function removerDaMateria(estudoId) {
-            // TODO: No futuro, isso fará um fetch() avisando o banco de dados para "desvincular"
-            // este estudo da matéria atual, deixando ele solto de novo.
-            console.log("Preparado para remover da matéria o estudo ID:", estudoId);
-            alert('A função de desvincular de uma matéria será implementada aqui em breve!');
+            estudoIdParaMateria = estudoId;
+            modalRemover.style.display = 'flex';
         }
+
+        // 4. Confirma a remoção do vínculo
+        document.getElementById('btnConfirmarRemoverMateria').addEventListener('click', async () => {
+            document.getElementById('btnConfirmarRemoverMateria').innerText = "Removendo...";
+
+            try {
+                const res = await fetch(`/api/estudos/${estudoIdParaMateria}/materia`, {
+                    method: 'DELETE'
+                });
+
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Erro ao desvincular matéria.');
+                    document.getElementById('btnConfirmarRemoverMateria').innerText = "REMOVER";
+                }
+            } catch (error) { console.error(error); }
+        });
+
+        // 5. Botões de Cancelar fecham as telas
+        document.getElementById('btnCancelarMover').addEventListener('click', () => modalMover.style.display = 'none');
+        document.getElementById('btnCancelarRemoverMateria').addEventListener('click', () => modalRemover.style.display = 'none');
     </script>
 </body>
 </html>

@@ -69,6 +69,7 @@ def registro():
 def materias():
     return render_template('materias.html', pagina_ativa='materias')
 
+
 @app.route('/novo_estudo')
 def novo_estudo():
     return render_template('novo_estudo.html', pagina_ativa='novo_estudo')
@@ -89,11 +90,50 @@ def visualizar_estudo(estudo_id):
     if not estudo_doc.exists:
         abort(404)
 
+    estudo_data = estudo_doc.to_dict()
+
+    nome_materia = "Estudos" # Título padrão caso o estudo não tenha matéria
+    materia_id = estudo_data.get('materia_id')
+    
+    if materia_id:
+        materia_ref = db.collection('usuarios').document(uid).collection('materias').document(materia_id)
+        materia_doc = materia_ref.get()
+        if materia_doc.exists:
+            nome_materia = materia_doc.to_dict().get('nome', 'Matéria Desconhecida')
+    # ----------------------------------------------------
+
     return render_template(
         'estudo.html',
         pagina_ativa='estudo',
         estudo_id=estudo_id,
-        estudo=estudo_doc.to_dict()
+        estudo=estudo_data,
+        nome_materia=nome_materia # Enviando a variável para o HTML
+    )
+@app.route('/materia/<materia_id>')
+def visualizar_materia(materia_id):
+    uid = session.get('uid')
+    if not uid:
+        return redirect(url_for('login'))
+
+    # Puxa os dados da matéria clicada
+    materia_ref = db.collection('usuarios').document(uid).collection('materias').document(materia_id)
+    materia_doc = materia_ref.get()
+
+    if not materia_doc.exists:
+        abort(404)
+
+    materia_data = materia_doc.to_dict()
+    materia_data['id'] = materia_doc.id
+
+    # Puxa só os estudos que tem o id dessa matéria
+    estudos_query = db.collection('usuarios').document(uid).collection('estudos').where('materia_id', '==', materia_id).stream()
+    estudos_vinculados = [{'id': doc.id, **doc.to_dict()} for doc in estudos_query]
+
+    return render_template(
+        'materia.html', 
+        pagina_ativa='materias', 
+        materia=materia_data, 
+        estudos_materia=estudos_vinculados
     )
 
 
@@ -123,8 +163,21 @@ def listar_materias():
     if not uid:
         return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
     
-    materias_ref = db.collection('usuarios').document(uid).collection('materias')
-    materias = [{'id': doc.id, **doc.to_dict()} for doc in materias_ref.stream()]
+    # Pega todas as matérias do usuário
+    materias_ref = db.collection('usuarios').document(uid).collection('materias').stream()
+    materias = []
+    
+    for doc in materias_ref:
+        materia_data = doc.to_dict()
+        materia_data['id'] = doc.id
+        
+        # Pede pro banco de dados contar quantos estudos têm o ID desta matéria
+        count_query = db.collection('usuarios').document(uid).collection('estudos').where('materia_id', '==', doc.id).count()
+        results = count_query.get()
+        materia_data['estudos'] = results[0][0].value
+        
+        materias.append(materia_data)
+        
     return jsonify(materias)
 
 @app.route('/api/materias', methods=['POST'])
@@ -177,6 +230,34 @@ def renomear_estudo(estudo_id):
         })
         return jsonify({'status': 'ok'})
     return jsonify({'status': 'erro', 'mensagem': 'Nome não fornecido'}), 400
+
+@app.route('/api/estudos/<estudo_id>/materia', methods=['PUT'])
+def vincular_materia(estudo_id):
+    uid = session.get('uid')
+    if not uid:
+        return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
+    
+    data = request.get_json()
+    materia_id = data.get('materia_id')
+
+    if materia_id:
+        db.collection('usuarios').document(uid).collection('estudos').document(estudo_id).update({
+            'materia_id': materia_id
+        })
+        return jsonify({'status': 'ok'})
+    return jsonify({'status': 'erro', 'mensagem': 'Matéria não fornecida'}), 400
+
+@app.route('/api/estudos/<estudo_id>/materia', methods=['DELETE'])
+def desvincular_materia(estudo_id):
+    uid = session.get('uid')
+    if not uid:
+        return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
+    
+    # O firestore.DELETE_FIELD apaga o campo 'materia_id' daquele documento
+    db.collection('usuarios').document(uid).collection('estudos').document(estudo_id).update({
+        'materia_id': firestore.DELETE_FIELD
+    })
+    return jsonify({'status': 'ok'})
 
 ### criar novo estudo
 @app.route('/api/processar', methods=['POST'])

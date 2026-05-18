@@ -1,0 +1,52 @@
+{% extends "home_base.html" %}
+
+{% block titulo %}Matéria: {{ materia.nome }}{% endblock %}
+{% block titulo_pagina %}MATÉRIA{% endblock %}
+
+{% block estilos %}
+<style>
+    .materia-container { padding: 40px; }
+    .materia-titulo { font-size: 32px; color: var(--color-text); margin-bottom: 5px; text-transform: uppercase; }
+    .materia-stats { color: var(--color-text-muted); font-size: 14px; margin-bottom: 30px; }
+    
+    .lista-estudos-materia { display: flex; flex-direction: column; gap: 15px; max-width: 800px; }
+    .card-estudo-materia {
+        background-color: #222; border: 1px solid var(--color-border);
+        border-radius: 12px; padding: 20px; display: flex;
+        justify-content: space-between; align-items: center;
+        text-decoration: none; color: inherit; transition: all 0.2s;
+    }
+    .card-estudo-materia:hover { border-color: var(--color-primary); transform: translateX(5px); }
+    .estudo-nome-card { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+    .estudo-data-card { font-size: 12px; color: var(--color-text-muted); }
+    .btn-abrir-estudo {
+        background-color: var(--color-primary); color: white;
+        padding: 8px 20px; border-radius: 50px; font-size: 13px; font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block conteudo %}
+<div class="materia-container">
+    <h1 class="materia-titulo">{{ materia.nome }}</h1>
+    <p class="materia-stats">Você tem {{ estudos_materia|length }} estudo(s) nesta matéria.</p>
+
+    <div class="lista-estudos-materia">
+        {% if estudos_materia %}
+            {% for est in estudos_materia %}
+                <a href="{{ url_for('visualizar_estudo', estudo_id=est.id) }}" class="card-estudo-materia">
+                    <div>
+                        <div class="estudo-nome-card">{{ est.nome }}</div>
+                        <div class="estudo-data-card">Estudo salvo no PrimeStudy</div>
+                    </div>
+                    <div class="btn-abrir-estudo">Abrir</div>
+                </a>
+            {% endfor %}
+        {% else %}
+            <div style="color: #666; font-style: italic; padding: 20px; border: 1px dashed #444; border-radius: 10px; text-align: center;">
+                Nenhum estudo movido para esta matéria ainda.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
