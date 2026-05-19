@@ -18,7 +18,7 @@ A partir do material enviado, a IA pode gerar:
 - [Anderson Lucas do Nascimento Gondim](https://github.com/Ander770) RA: 24787293
 - [Felipe Nonato Leoneli](https://github.com/lipeleoneli) RA: 24021973
 - [Filipe Ribeiro Simões](https://github.com/FilipeeeRS) RA: 24007657
-- [Lucas Albrechet L Ruman](https://github.com/RumanLucas2) RA: 
+- [Lucas Albrechet L Ruman](https://github.com/RumanLucas2) RA: 20000626
 - [Rafael Roveri Pires](https://github.com/RafssRv) RA: 24007131
 - [João Victor Moreira Vidal](https://github.com/JaoVidal1) RA: 19291384
 
