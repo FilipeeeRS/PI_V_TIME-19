@@ -13,6 +13,7 @@ Gere um resumo fiel ao texto abaixo.
 - Use tópicos claros
 - Destaque os conceitos principais
 """,
+
     'flashcard': """
 Gere flashcards de estudo no formato:
 P: [pergunta]
@@ -20,45 +21,54 @@ R: [resposta]
 
 Crie entre 5 e 10 flashcards com os conceitos mais importantes.
 """,
+
     'questoes': """
 Gere 5 questões de múltipla escolha sobre o texto.
-Para cada questão, indique a resposta correta.
+
 Formato:
 1. [pergunta]
-a) ...  b) ...  c) ...  d) ...
-Resposta: [letra]
+a) ...
+b) ...
+c) ...
+d) ...
+
+Resposta correta: [letra]
 """,
+
     'mapa': """
-Gere um mapa mental em formato de texto estruturado com hierarquia.
-Use indentação para mostrar os níveis.
+Gere um mapa mental em formato hierárquico.
+
 Exemplo:
-Tema Central
-  Subtema 1
-    Detalhe A
-    Detalhe B
-  Subtema 2
+Tema Principal
+  Subtema
+    Detalhe
 """,
+
     'checklist': """
-Gere um checklist de estudo com os tópicos principais do texto.
+Gere um checklist de estudo.
+
 Formato:
-[ ] Tópico 1
-[ ] Tópico 2
+[ ] Tópico
 """,
+
     'topicos': """
-Liste os principais tópicos e conceitos do texto.
-Use bullet points e seja objetivo.
-""",
+Liste os principais tópicos do texto usando bullet points.
+"""
 }
 
 def gerar_conteudo(tipo, texto):
+
     prompt = PROMPTS.get(tipo)
     if not prompt:
         return "Tipo inválido."
-
     try:
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=f"{prompt}\n\nTexto:\n{texto[:10000]}"
+            model="gemini-2.5-flash",
+            contents=f"""{prompt}Texto:{texto[:2000]}""",
+            generation_config={
+                "max_output_tokens": 300,
+                "temperature": 0.5
+            }
         )
         return response.text
     except Exception as e:
