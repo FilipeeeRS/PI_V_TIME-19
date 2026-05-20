@@ -121,6 +121,8 @@
 
             if (!nome)              { mostrarErro('Preencha seu nome.'); return; }
             if (!email)             { mostrarErro('Preencha seu email.'); return; }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) { mostrarErro('Digite um email válido (ex: nome@email.com).'); return; }
             if (senha.length < 6)   { mostrarErro('A senha deve ter no mínimo 6 caracteres.'); return; }
             if (senha !== conf)     { mostrarErro('As senhas não coincidem.'); return; }
 
