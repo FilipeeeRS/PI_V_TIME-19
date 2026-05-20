@@ -8,6 +8,31 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
 
     {% block estilos %}{% endblock %}
+
+    <style>
+        .dropdown-container { position: relative; display: inline-block; }
+        .btn-dots { background: none; border: none; cursor: pointer; padding: 5px; color: var(--color-text-muted); opacity: 0.7; transition: opacity 0.2s; }
+        .btn-dots:hover { opacity: 1; color: var(--color-text); }
+        
+        .dropdown-menu {
+            display: none; position: absolute; right: 0; top: 100%;
+            background-color: #252525; min-width: 200px;
+            border: 1px solid var(--color-border); border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 1000;
+            padding: 8px 0; flex-direction: column;
+        }
+        .dropdown-menu.show { display: flex; }
+        
+        .dropdown-item {
+            padding: 10px 15px; color: var(--color-text-muted); text-decoration: none;
+            display: flex; align-items: center; gap: 12px; cursor: pointer;
+            font-size: 13px; background: none; border: none; width: 100%; text-align: left;
+        }
+        .dropdown-item:hover { background-color: #333; color: var(--color-text); }
+        .dropdown-item.danger { color: #ff4d4d; }
+        .dropdown-item.danger:hover { background-color: rgba(255, 77, 77, 0.1); }
+        .dropdown-divider { height: 1px; background-color: var(--color-border); margin: 4px 0; }
+    </style>
 </head>
 <body>
 
@@ -40,14 +65,56 @@
             <a href="{{ url_for('novo_estudo') }}" style="text-decoration: none; color: inherit;">
                 <li class="{{ 'active' if pagina_ativa == 'novo_estudo' else '' }}">NOVO ESTUDO</li>
             </a>
-            <a href="{{ url_for('historico') }}" style="text-decoration: none; color: inherit;">
-                <li class="{{ 'active' if pagina_ativa == 'historico' else '' }}">HISTÓRICO</li>
-            </a>
             <a href="{{ url_for('materias') }}" style="text-decoration: none; color: inherit;">
                 <li class="{{ 'active' if pagina_ativa == 'materias' else '' }}">MATÉRIAS</li>
             </a>
             <hr class="menu-divider">
-            <p class="menu-hint">Seus estudos aparecerão aqui.</p>
+            <div class="recentes-section">
+                <p class="menu-section-title">ESTUDOS</p>
+                {% if estudos_recentes %}
+                    <div class="recentes-lista">
+                       {% for estudo_item in estudos_recentes %}
+      <div style="display: flex; align-items: center; justify-content: space-between; padding-right: 5px;">
+        <!-- O link do estudo -->
+        <a href="{{ url_for('visualizar_estudo', estudo_id=estudo_item.id) }}" class="recente-link {{ 'active' if pagina_ativa == 'estudo' and estudo_id == estudo_item.id else '' }}" style="flex-grow: 1; min-width: 0;">
+            <span class="recente-nome">{{ estudo_item.nome }}</span>
+            <span class="recente-meta">{{ estudo_item.opcao }}</span>
+        </a>
+        
+        <!-- Os 3 pontinhos e o Menu Dropdown -->
+        <div class="dropdown-container">
+            <button class="btn-dots" onclick="toggleMenu(event, 'menu-{{ estudo_item.id }}')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle>
+                </svg>
+            </button>
+           <div id="menu-{{ estudo_item.id }}" class="dropdown-menu">
+                <button class="dropdown-item btn-abrir-rename" data-id="{{ estudo_item.id }}" data-nome="{{ estudo_item.nome }}">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    Renomear
+                </button>
+                <button class="dropdown-item" onclick="moverParaMateria('{{ estudo_item.id }}')">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                    Mover para matéria
+                </button>
+                <button class="dropdown-item" onclick="removerDaMateria('{{ estudo_item.id }}')">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><line x1="9" y1="14" x2="15" y2="14"></line></svg>
+                    Remover da matéria
+                </button>
+                <div class="dropdown-divider"></div>
+                <button class="dropdown-item danger btn-deletar-estudo" data-id="{{ estudo_item.id }}">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    Deletar
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="menu-hint">Seus estudos recentes aparecerão aqui.</p>
+                {% endif %}
+            </div>
         </ul>
 
         <div class="sidebar-footer" id="btnAbrirInfo">
@@ -73,6 +140,55 @@
 
     <!-- Modal de Info (compartilhado em todas as páginas) -->
     {% block modais %}{% endblock %}
+
+    <div id="modalConfirmDelete" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 350px;">
+            <h2 style="font-size: 22px; margin-bottom: 10px;">Excluir Estudo</h2>
+            <p style="margin-bottom: 25px;">Tem certeza que deseja excluir este estudo permanentemente? Essa ação não pode ser desfeita.</p>
+            <div style="display: flex; justify-content: center; gap: 15px;">
+                <button class="btn-modal" id="btnCancelarDelete" style="background-color: #333;">Cancelar</button>
+                <button class="btn-modal" id="btnConfirmarDelete" style="background-color: #ff4d4d;">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Renomear Estudo -->
+    <div id="modalRename" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 350px;">
+            <h2 style="font-size: 22px; margin-bottom: 10px;">Renomear Estudo</h2>
+            <input type="text" id="inputNovoNome" style="width: 100%; padding: 10px; margin-bottom: 20px; border-radius: 5px; border: 1px solid #555; background: #333; color: white;" placeholder="Digite o novo nome...">
+            <div style="display: flex; justify-content: center; gap: 15px;">
+                <button class="btn-modal" id="btnCancelarRename" style="background-color: #333;">Cancelar</button>
+                <button class="btn-modal" id="btnConfirmarRename" style="background-color: var(--color-primary);">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalMoverMateria" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 320px; border-radius: 20px; padding: 30px 25px;">
+            <h2 style="font-size: 20px; margin-bottom: 15px; font-weight: bold;">Mover para Matéria</h2>
+            
+            <select id="selectMateria" style="width: 100%; padding: 12px; margin-bottom: 25px; border-radius: 10px; border: 1px solid #444; background: #222; color: white; font-size: 14px; cursor: pointer;">
+                <option value="">Carregando...</option>
+            </select>
+
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button class="btn-modal" id="btnCancelarMover" style="background-color: #333; width: 100%; border-radius: 50px; font-size: 12px;">CANCELAR</button>
+                <button class="btn-modal" id="btnConfirmarMover" style="background-color: var(--color-primary); width: 100%; border-radius: 50px; font-size: 12px;">SALVAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalRemoverMateria" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 320px; border-radius: 20px; padding: 30px 25px;">
+            <h2 style="font-size: 20px; margin-bottom: 10px; font-weight: bold;">Remover da Matéria</h2>
+            <p style="margin-bottom: 25px; font-size: 14px; color: var(--color-text-muted);">Este estudo ficará solto na tela inicial. Ele não será excluído.</p>
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button class="btn-modal" id="btnCancelarRemoverMateria" style="background-color: #333; width: 100%; border-radius: 50px; font-size: 12px;">CANCELAR</button>
+                <button class="btn-modal" id="btnConfirmarRemoverMateria" style="background-color: #ff4d4d; width: 100%; border-radius: 50px; font-size: 12px;">REMOVER</button>
+            </div>
+        </div>
+    </div>
 
     <div id="modalInfo" class="modal-overlay modal-info">
         <div class="modal-info-content">
@@ -108,6 +224,207 @@
     </script>
 
     {% block scripts %}{% endblock %}
+<script>
+        // Variável para guardar o ID do estudo que o usuário quer apagar
+        let estudoIdParaDeletar = null;
+        const modalConfirm = document.getElementById('modalConfirmDelete');
 
+        // 1. Quando clicar na lixeira: Abre o modal bonitão
+        document.querySelectorAll('.btn-deletar-estudo').forEach(botao => {
+            botao.addEventListener('click', function(e) {
+                e.preventDefault(); 
+                estudoIdParaDeletar = this.getAttribute('data-id'); // Guarda o ID
+                modalConfirm.style.display = 'flex'; // Mostra o modal
+            });
+        });
+
+        // 2. Quando clicar em Cancelar: Só fecha o modal
+        document.getElementById('btnCancelarDelete').addEventListener('click', () => {
+            modalConfirm.style.display = 'none';
+            estudoIdParaDeletar = null; // Limpa o ID
+        });
+
+        // 3. Quando clicar em Excluir (O vermelho): Executa a ação no Python
+        document.getElementById('btnConfirmarDelete').addEventListener('click', async () => {
+            if (!estudoIdParaDeletar) return;
+
+            // Muda o texto do botão para dar um feedback visual
+            const btnExcluir = document.getElementById('btnConfirmarDelete');
+            btnExcluir.innerText = "Excluindo...";
+            btnExcluir.style.opacity = "0.7";
+
+            try {
+                // Manda a requisição para o Python
+                const response = await fetch(`/api/estudos/${estudoIdParaDeletar}`, {
+                    method: 'DELETE'
+                });
+
+               if (response.ok) {
+                    // Verifica se o usuário está na página do estudo que acabou de apagar
+                    if (window.location.pathname.includes(estudoIdParaDeletar)) {
+                        window.location.href = '/home'; 
+                    } else {
+                        window.location.reload(); 
+                    }
+                } else {
+                    alert('Houve um erro ao excluir o estudo.');
+                    modalConfirm.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Erro na comunicação com o servidor:', error);
+                modalConfirm.style.display = 'none';
+            }
+        });
+
+        
+
+        // LÓGICA DO MENU DE 3 PONTINHOS
+        function toggleMenu(event, menuId) {
+            event.preventDefault();
+            event.stopPropagation(); // Evita que o clique feche o menu imediatamente
+            
+            // Fecha outros menus que estiverem abertos
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                if(menu.id !== menuId) menu.classList.remove('show');
+            });
+            // Abre/Fecha o clicado
+            document.getElementById(menuId).classList.toggle('show');
+        }
+
+        // Clicar fora do menu fecha ele
+        window.addEventListener('click', function() {
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                menu.classList.remove('show');
+            });
+        });
+
+        // LÓGICA DE RENOMEAR ESTUDO
+        let estudoIdParaRenomear = null;
+        const modalRename = document.getElementById('modalRename');
+        const inputNovoNome = document.getElementById('inputNovoNome');
+
+        // Quando clica em "Renomear" no menu
+        document.querySelectorAll('.btn-abrir-rename').forEach(botao => {
+            botao.addEventListener('click', function(e) {
+                e.preventDefault();
+                estudoIdParaRenomear = this.getAttribute('data-id');
+                inputNovoNome.value = this.getAttribute('data-nome'); // Puxa o nome atual
+                modalRename.style.display = 'flex';
+            });
+        });
+
+        document.getElementById('btnCancelarRename').addEventListener('click', () => {
+            modalRename.style.display = 'none';
+        });
+
+        document.getElementById('btnConfirmarRename').addEventListener('click', async () => {
+            if (!estudoIdParaRenomear) return;
+            const novoNome = inputNovoNome.value.trim();
+            if(!novoNome) { alert('O nome não pode ficar vazio.'); return; }
+
+            const btnSalvar = document.getElementById('btnConfirmarRename');
+            btnSalvar.innerText = "Salvando...";
+
+            try {
+                const response = await fetch(`/api/estudos/${estudoIdParaRenomear}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome: novoNome })
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Erro ao renomear.');
+                    modalRename.style.display = 'none';
+                    btnSalvar.innerText = "Salvar";
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        });
+
+      
+        // logica da remover e mover matérias
+        let estudoIdParaMateria = null;
+        const modalMover = document.getElementById('modalMoverMateria');
+        const modalRemover = document.getElementById('modalRemoverMateria');
+        const selectMateria = document.getElementById('selectMateria');
+
+        // 1. Abre a tela de Mover e puxa as matérias do banco de dados
+        async function moverParaMateria(estudoId) {
+            estudoIdParaMateria = estudoId;
+            modalMover.style.display = 'flex';
+            selectMateria.innerHTML = '<option value="">Carregando matérias...</option>';
+
+            try {
+                const res = await fetch('/api/materias');
+                if (res.ok) {
+                    const materias = await res.json();
+                    if (materias.length === 0) {
+                        selectMateria.innerHTML = '<option value="">Crie uma matéria primeiro!</option>';
+                    } else {
+                        selectMateria.innerHTML = '<option value="">Selecione a matéria...</option>';
+                        materias.forEach(m => {
+                            selectMateria.innerHTML += `<option value="${m.id}">${m.nome}</option>`;
+                        });
+                    }
+                }
+            } catch (err) {
+                selectMateria.innerHTML = '<option value="">Erro ao carregar</option>';
+            }
+        }
+
+        // 2. Confirma a movimentação
+        document.getElementById('btnConfirmarMover').addEventListener('click', async () => {
+            const materiaId = selectMateria.value;
+            if (!materiaId) return alert('Por favor, selecione uma matéria!');
+
+            document.getElementById('btnConfirmarMover').innerText = "Salvando...";
+
+            try {
+                const res = await fetch(`/api/estudos/${estudoIdParaMateria}/materia`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ materia_id: materiaId })
+                });
+
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Erro ao vincular matéria.');
+                    document.getElementById('btnConfirmarMover').innerText = "SALVAR";
+                }
+            } catch (error) { console.error(error); }
+        });
+
+        // 3. Abre o modal para Remover da Matéria
+        function removerDaMateria(estudoId) {
+            estudoIdParaMateria = estudoId;
+            modalRemover.style.display = 'flex';
+        }
+
+        // 4. Confirma a remoção do vínculo
+        document.getElementById('btnConfirmarRemoverMateria').addEventListener('click', async () => {
+            document.getElementById('btnConfirmarRemoverMateria').innerText = "Removendo...";
+
+            try {
+                const res = await fetch(`/api/estudos/${estudoIdParaMateria}/materia`, {
+                    method: 'DELETE'
+                });
+
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Erro ao desvincular matéria.');
+                    document.getElementById('btnConfirmarRemoverMateria').innerText = "REMOVER";
+                }
+            } catch (error) { console.error(error); }
+        });
+
+        // 5. Botões de Cancelar fecham as telas
+        document.getElementById('btnCancelarMover').addEventListener('click', () => modalMover.style.display = 'none');
+        document.getElementById('btnCancelarRemoverMateria').addEventListener('click', () => modalRemover.style.display = 'none');
+    </script>
 </body>
 </html>
