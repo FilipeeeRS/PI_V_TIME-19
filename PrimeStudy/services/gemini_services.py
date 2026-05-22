@@ -65,7 +65,7 @@ def gerar_conteudo(tipo, texto):
         response = client.models.generate_content(
             model="gemini-2.5-flash",
             contents=f"""{prompt}Texto:{texto[:2000]}""",
-            generation_config={
+            config={
                 "max_output_tokens": 300,
                 "temperature": 0.5
             }

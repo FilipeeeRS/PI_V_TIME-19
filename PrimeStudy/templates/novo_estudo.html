@@ -140,8 +140,6 @@
             const arquivo = inputArquivo.files[0];
             const opcoesSelecionadas = [...document.querySelectorAll('.opcao.selecionada')]
                 .map(o => o.dataset.opcao);
-
-            const arquivo = inputArquivo.files[0];
             const formData = new FormData();
             formData.append('arquivo', arquivo);
             formData.append('nome', document.getElementById('nomeEstudo').value);
