@@ -6,6 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PrimeStudy | Bem Vindo</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bem_vindo.css') }}">
+    <script>
+        if (localStorage.getItem('primestudy_visitou')) {
+            window.location.replace('/home');
+        }
+        window.addEventListener('pageshow', function(event) {
+        if (localStorage.getItem('primestudy_visitou')) {
+            window.location.replace('/home');
+        }
+    });
+    </script>
 </head>
 <body>
     <div class="main-card">
@@ -22,7 +32,13 @@
         <div class="icon-container">
             <img src="{{ url_for('static', filename='logoV1.png') }}" alt="Logo da plataforma PrimeStudy" style="width: 280px; height: auto;">
         </div>
-        <button class="btn-vamos-la" onclick="window.location.href='/home'">VAMOS LÁ!</button>
+        <button class="btn-vamos-la" onclick="irParaHome()">VAMOS LÁ!</button>
     </div>
+    <script>
+        function irParaHome() {
+            localStorage.setItem('primestudy_visitou', 'true');
+            window.location.href = '/home';
+        }
+    </script>
 </body>
 </html>

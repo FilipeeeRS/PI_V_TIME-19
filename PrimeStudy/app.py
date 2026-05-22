@@ -7,11 +7,9 @@ from firebase_config import db
 import pdfplumber
 import io 
 from services.gemini_services import gerar_conteudo
-
+import json 
 
 load_dotenv()
-print("A CHAVE É:", os.getenv('FIREBASE_API_KEY'))
-
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'troque-por-uma-chave-secreta-forte')
 
@@ -268,11 +266,11 @@ def processar_pdf():
 
     arquivo = request.files.get('arquivo')
     nome = request.form.get('nome') or arquivo.filename
+    opcoes = json.loads(request.form.get('opcoes', '[]'))
 
     if not arquivo:
         return jsonify({'status': 'erro', 'mensagem': 'Nenhum arquivo enviado'}), 400
 
-    # Extrai o texto do PDF
     texto = ''
     with pdfplumber.open(io.BytesIO(arquivo.read())) as pdf:
         for pagina in pdf.pages:
@@ -281,7 +279,12 @@ def processar_pdf():
                 texto += conteudo + '\n'
 
     if not texto.strip():
-        return jsonify({'status': 'erro', 'mensagem': 'Não foi possível extrair texto do PDF'}), 400
+        if not texto.strip():
+            return jsonify({
+                'status': 'erro', 
+                'mensagem': 'Este PDF contém imagens escaneadas e não possui texto legível. Por favor, envie um PDF com texto selecionável.'
+            }), 400
+
 
     estudo_ref = db.collection('usuarios').document(uid).collection('estudos').document()
     

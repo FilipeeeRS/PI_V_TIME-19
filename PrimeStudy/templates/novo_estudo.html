@@ -57,14 +57,22 @@
             btnEnviar.disabled = !(temArquivo && temNome);
         }
 
+        const MAX_OPCOES = 3;
         opcoes.forEach(opcao => {
             opcao.addEventListener('click', function () {
                 const jaSelecionada = this.classList.contains('selecionada');
-                opcoes.forEach(o => o.classList.remove('selecionada'));
-                
+                const totalSelecionadas = document.querySelectorAll('.opcao.selecionada').length;
+
                 if (jaSelecionada) {
-                    opcoesGrid.classList.remove('tem-selecao');
+                    this.classList.remove('selecionada');
+                    if (document.querySelectorAll('.opcao.selecionada').length === 0) {
+                        opcoesGrid.classList.remove('tem-selecao');
+                    }
                 } else {
+                    if (totalSelecionadas >= MAX_OPCOES) {
+                        mostrarAviso('Selecione no máximo 3 opções.');
+                        return;
+                    }
                     this.classList.add('selecionada');
                     opcoesGrid.classList.add('tem-selecao');
                 }
@@ -130,7 +138,10 @@
 
         btnEnviar.addEventListener('click', async () => {
             const arquivo = inputArquivo.files[0];
+            const opcoesSelecionadas = [...document.querySelectorAll('.opcao.selecionada')]
+                .map(o => o.dataset.opcao);
 
+            const arquivo = inputArquivo.files[0];
             const formData = new FormData();
             formData.append('arquivo', arquivo);
             formData.append('nome', document.getElementById('nomeEstudo').value);
@@ -159,6 +170,5 @@
                 btnEnviar.textContent = 'Enviar e Analisar';
             }
         });
-
     </script>
 {% endblock %}
