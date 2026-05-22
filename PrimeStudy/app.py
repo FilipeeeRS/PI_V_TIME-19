@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from firebase_config import db
 import pdfplumber
 import io 
-from services.gemini_services import gerar_resumo
+from services.gemini_services import gerar_conteudo
 
 
 load_dotenv()

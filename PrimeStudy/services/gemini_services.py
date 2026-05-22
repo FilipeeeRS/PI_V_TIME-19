@@ -55,12 +55,33 @@ def gerar_conteudo(tipo, texto):
     if not prompt:
         return "Tipo inválido."
 
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=f"{prompt}\n\nTexto:\n{texto[:10000]}"
-        )
-        return response.text
-    except Exception as e:
-        print("Erro Gemini:", e)
-        return "Erro ao gerar conteúdo."
+    # A JOGADA DE MESTRE: Uma lista de nomes genéricos e atuais. 
+    # O código vai tentar um por um até o Google aceitar.
+    modelos_tentativas = [
+        "gemini-2.5-flash",
+        "gemini-flash",
+        "gemini-pro",
+        "gemini-1.5-flash-latest"
+    ]
+
+    for modelo_atual in modelos_tentativas:
+        try:
+            print(f"🔄 Testando conexão com o modelo: {modelo_atual}...")
+            response = client.models.generate_content(
+                model=modelo_atual,
+                contents=f"{prompt}\n\nTexto:\n{texto[:10000]}"
+            )
+            print(f"✅ Sucesso! O Google aceitou o modelo: {modelo_atual}")
+            return response.text
+
+        except Exception as e:
+            mensagem_erro = str(e)
+            print(f"❌ O modelo {modelo_atual} falhou: {mensagem_erro}")
+            
+            # Se o erro for "RESOURCE_EXHAUSTED" (429), significa que o limite da chave acabou.
+            # Nesse caso não adianta tentar outros modelos, avisamos o usuário na tela.
+            if "429" in mensagem_erro or "RESOURCE_EXHAUSTED" in mensagem_erro:
+                return "A IA está dormindo 😴. O limite gratuito da API acabou. Tente novamente mais tarde ou use uma nova chave."
+
+    # Se ele testar todos da lista e o Google recusar todos
+    return "Erro técnico: A API do Google recusou a conexão. Verifique o terminal para detalhes."

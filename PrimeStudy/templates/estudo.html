@@ -10,7 +10,6 @@
 {% block conteudo %}
 <div class="chat-wrapper">
 
-    <!-- Header fixo com nome do estudo -->
     <header class="chat-header">
         <div class="chat-header-info">
             <span class="chat-label">Estudo Atual</span>
@@ -18,10 +17,8 @@
         </div>
     </header>
 
-    <!-- Área de mensagens -->
     <div class="chat-messages" id="chatMessages">
 
-        <!-- Mensagem de boas-vindas da IA -->
         <div class="msg msg-ai" id="welcomeMsg">
             <div class="msg-avatar">✦</div>
             <div class="msg-body">
@@ -37,35 +34,13 @@
             </div>
         </div>
 
-        <!-- Conteúdo já gerado anteriormente (se existir) -->
-        {% if estudo.conteudo and estudo.conteudo.resumo %}
-        <div class="msg msg-user">
-            <div class="msg-body">
-                <p>📝 Resumo</p>
-            </div>
-        </div>
-        <div class="msg msg-ai">
-            <div class="msg-avatar">✦</div>
-            <div class="msg-body">
-                <div class="resultado-content">{{ estudo.conteudo.resumo }}</div>
-                <div class="opcoes-chips">
-                    <button class="chip" data-opcao="resumo">📝 Resumo</button>
-                    <button class="chip" data-opcao="flashcard">🃏 Flashcards</button>
-                    <button class="chip" data-opcao="questoes">❓ Questões</button>
-                    <button class="chip" data-opcao="mapa">🗺️ Mapa Mental</button>
-                    <button class="chip" data-opcao="checklist">✅ Checklist</button>
-                    <button class="chip" data-opcao="topicos">📌 Tópicos</button>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
     </div>
 
 </div>
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
     const ESTUDO_ID = "{{ estudo_id }}";
     const chatMessages = document.getElementById('chatMessages');
@@ -88,6 +63,8 @@
             <button class="chip" data-opcao="checklist">✅ Checklist</button>
             <button class="chip" data-opcao="topicos">📌 Tópicos</button>
         </div>`;
+
+    marked.setOptions({ breaks: true });
 
     function scrollToBottom() {
         chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
@@ -117,22 +94,139 @@
         return msg;
     }
 
-    function addAiMessage(content) {
-        const loadingMsg = document.getElementById('loadingMsg');
-        if (loadingMsg) loadingMsg.remove();
+function parsearFlashcards(texto) {
+    const cards = [];
+    const linhas = texto.split('\n');
+    let cardAtual = null;
 
-        const msg = document.createElement('div');
-        msg.className = 'msg msg-ai msg-enter';
-        msg.innerHTML = `
-            <div class="msg-avatar">✦</div>
-            <div class="msg-body">
-                <div class="resultado-content">${content}</div>
-                ${CHIPS_HTML}
-            </div>`;
-        chatMessages.appendChild(msg);
-        bindChips(msg);
-        scrollToBottom();
+    for (const linha of linhas) {
+        const limpa = linha.trim();
+        if (limpa.startsWith('P:')) {
+            if (cardAtual) cards.push(cardAtual);
+            cardAtual = { pergunta: limpa.replace(/^P:\s*/, ''), resposta: '' };
+        } else if (limpa.startsWith('R:') && cardAtual) {
+            cardAtual.resposta = limpa.replace(/^R:\s*/, '');
+        }
     }
+    if (cardAtual) cards.push(cardAtual);
+    return cards;
+}
+
+function renderFlashcards(cards) {
+    let atual = 0;
+    const vistos = new Set();
+    const uid = Math.random().toString(36).slice(2);
+
+    function dotsSvg() {
+        return cards.map((_, i) =>
+            `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${i===atual?'#7017b1':'#2a2a2a'};transition:background 0.2s;margin:0 3px;"></span>`
+        ).join('');
+    }
+
+    const html = `
+        <div class="fc-wrapper" id="fcw-${uid}">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                <span class="fc-counter" style="font-size:13px;color:#aaa;">Card 1 de ${cards.length}</span>
+                <div style="display:flex;gap:8px;">
+                    <button class="fc-btn fc-prev" style="opacity:0.3;cursor:not-allowed;">← Anterior</button>
+                    <button class="fc-btn fc-next">Próximo →</button>
+                </div>
+            </div>
+            <div class="fc-scene" style="perspective:1000px;width:100%;height:200px;cursor:pointer;">
+                <div class="fc-card-inner" style="width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform 0.5s cubic-bezier(0.4,0,0.2,1);border-radius:14px;">
+                    <div class="fc-face fc-front" style="position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:14px;background:#1a1a1a;border:1px solid #2a2a2a;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;">
+                        <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7017b1;margin-bottom:12px;">Pergunta</span>
+                        <p class="fc-pergunta" style="font-size:15px;color:#e8e8e8;text-align:center;line-height:1.6;margin:0;">${cards[0].pergunta}</p>
+                        <span style="font-size:12px;color:#444;margin-top:14px;">clique para revelar</span>
+                    </div>
+                    <div class="fc-face fc-back" style="position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:14px;background:#1e1228;border:1px solid #7017b1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;transform:rotateY(180deg);">
+                        <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#c084fc;margin-bottom:12px;">Resposta</span>
+                        <p class="fc-resposta" style="font-size:15px;color:#e8e8e8;text-align:center;line-height:1.6;margin:0;">${cards[0].resposta}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="fc-dots" style="text-align:center;margin-top:14px;">${dotsSvg()}</div>
+            <p class="fc-prog" style="font-size:12px;color:#555;text-align:center;margin-top:8px;">0 de ${cards.length} revisados</p>
+        </div>`;
+
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = html;
+    const el = wrapper.firstElementChild;
+
+    const inner = el.querySelector('.fc-card-inner');
+    const perguntaEl = el.querySelector('.fc-pergunta');
+    const respostaEl = el.querySelector('.fc-resposta');
+    const counterEl = el.querySelector('.fc-counter');
+    const dotsEl = el.querySelector('.fc-dots');
+    const progEl = el.querySelector('.fc-prog');
+    const btnPrev = el.querySelector('.fc-prev');
+    const btnNext = el.querySelector('.fc-next');
+
+    function atualizar() {
+        inner.style.transform = '';
+        perguntaEl.textContent = cards[atual].pergunta;
+        respostaEl.textContent = cards[atual].resposta;
+        counterEl.textContent = `Card ${atual + 1} de ${cards.length}`;
+        dotsEl.innerHTML = dotsSvg();
+        btnPrev.style.opacity = atual === 0 ? '0.3' : '1';
+        btnPrev.style.cursor = atual === 0 ? 'not-allowed' : 'pointer';
+        btnNext.style.opacity = atual === cards.length - 1 ? '0.3' : '1';
+        btnNext.style.cursor = atual === cards.length - 1 ? 'not-allowed' : 'pointer';
+        vistos.add(atual);
+        progEl.textContent = vistos.size === cards.length
+            ? '✓ Todos os cards revisados!'
+            : `${vistos.size} de ${cards.length} revisados`;
+    }
+
+    el.querySelector('.fc-scene').addEventListener('click', () => {
+        const virado = inner.style.transform === 'rotateY(180deg)';
+        inner.style.transform = virado ? '' : 'rotateY(180deg)';
+    });
+    btnNext.addEventListener('click', () => { if (atual < cards.length - 1) { atual++; atualizar(); } });
+    btnPrev.addEventListener('click', () => { if (atual > 0) { atual--; atualizar(); } });
+
+    return el;
+}
+
+function addAiMessage(content, tipo) {
+    const loadingMsg = document.getElementById('loadingMsg');
+    if (loadingMsg) loadingMsg.remove();
+
+    const msg = document.createElement('div');
+    msg.className = 'msg msg-ai msg-enter';
+
+    const body = document.createElement('div');
+    body.className = 'msg-body';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'msg-avatar';
+    avatar.textContent = '✦';
+
+    if (tipo === 'flashcard') {
+        const cards = parsearFlashcards(content);
+        if (cards.length > 0) {
+            body.appendChild(renderFlashcards(cards));
+        } else {
+            const div = document.createElement('div');
+            div.className = 'resultado-content';
+            div.innerHTML = marked.parse(content);
+            body.appendChild(div);
+        }
+    } else {
+        const div = document.createElement('div');
+        div.className = `resultado-content resultado-${tipo || ''}`;
+        div.innerHTML = marked.parse(content);
+        body.appendChild(div);
+    }
+
+    body.insertAdjacentHTML('beforeend', CHIPS_HTML);
+
+    msg.appendChild(avatar);
+    msg.appendChild(body);
+    chatMessages.appendChild(msg);
+    bindChips(msg);
+    scrollToBottom();
+}
 
     function disableAllChips() {
         document.querySelectorAll('.chip').forEach(c => c.disabled = true);
@@ -140,7 +234,6 @@
 
     async function handleOpcao(tipo) {
         disableAllChips();
-
         addUserMessage(LABELS[tipo] || tipo);
         addLoadingMessage();
 
@@ -153,7 +246,7 @@
 
             const data = await res.json();
             const conteudo = data.conteudo || data.resultado || 'Conteúdo gerado com sucesso!';
-            addAiMessage(conteudo);
+            addAiMessage(conteudo, tipo);
         } catch (err) {
             const loadingMsg = document.getElementById('loadingMsg');
             if (loadingMsg) loadingMsg.remove();
@@ -167,7 +260,17 @@
         });
     }
 
-    // Inicializa os chips da mensagem de boas-vindas
     bindChips(document.getElementById('chatMessages'));
+
+    // Renderiza conteúdo já salvo ao carregar a página
+    const conteudoSalvo = {{ estudo.conteudo | tojson if estudo.conteudo else '{}' }};
+
+    const ordem = ['resumo', 'flashcard', 'questoes', 'mapa', 'checklist', 'topicos'];
+    for (const tipo of ordem) {
+        if (conteudoSalvo[tipo]) {
+            addUserMessage(LABELS[tipo]);
+            addAiMessage(conteudoSalvo[tipo], tipo);
+        }
+    }
 </script>
 {% endblock %}
