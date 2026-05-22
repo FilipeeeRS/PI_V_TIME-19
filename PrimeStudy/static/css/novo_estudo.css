@@ -90,9 +90,10 @@
 
 .opcoes-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
     gap: 10px;
     margin-bottom: 28px;
+    max-width: fit-content;
 }
 
 .opcao {
@@ -138,3 +139,30 @@
 
 .btn-enviar:hover { opacity: 0.9; }
 .btn-enviar:disabled { opacity: 0.3; cursor: default; }
+
+/* --- ESTILO DO INPUT DE NOME DO ESTUDO --- */
+.input-escuro {
+    width: 100%;
+    background-color: #222222; /* Fundo escuro combinando com o site */
+    color: var(--color-text);  /* Texto branco */
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+    margin-bottom: 32px; 
+    box-sizing: border-box;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+/* Quando o usuário clica para digitar, a borda fica roxa */
+.input-escuro:focus {
+    border-color: var(--color-primary);
+    background-color: #2a2a2a;
+}
+
+/* Cor do texto de "dica" (placeholder) */
+.input-escuro::placeholder {
+    color: var(--color-text-muted);
+}

@@ -26,36 +26,8 @@
                 </div>
 
                 <span id="avisoGeral" style="color: #ff4d4d; font-size: 11px; margin-bottom: 20px; display: none; text-align: center; width: 100%; font-weight: bold;"></span>
-
-                <p class="opcoes-label">O que deseja?</p>
-                <div class="opcoes-grid" id="opcoesGrid">
-                    <div class="opcao" data-opcao="resumo">
-                        <span class="opcao-icone">📝</span>
-                        <span class="opcao-texto">Resumo</span>
-                    </div>
-                    <div class="opcao" data-opcao="flashcard">
-                        <span class="opcao-icone">🃏</span>
-                        <span class="opcao-texto">Flashcards</span>
-                    </div>
-                    <div class="opcao" data-opcao="questoes">
-                        <span class="opcao-icone">❓</span>
-                        <span class="opcao-texto">Questões</span>
-                    </div>
-                    <div class="opcao" data-opcao="mapa">
-                        <span class="opcao-icone">🗺️</span>
-                        <span class="opcao-texto">Mapa Mental</span>
-                    </div>
-                    <div class="opcao" data-opcao="checklist">
-                        <span class="opcao-icone">✅</span>
-                        <span class="opcao-texto">Checklist</span>
-                    </div>
-                    <div class="opcao" data-opcao="topicos">
-                        <span class="opcao-icone">📌</span>
-                        <span class="opcao-texto">Tópicos</span>
-                    </div>
-                </div>
-
-                <button class="btn-enviar" id="btnEnviar" disabled>Enviar e Analisar</button>
+                <input type="text" id="nomeEstudo" class="input-escuro" placeholder="Dê um nome para este estudo..." />
+                <button class="btn-enviar" id="btnEnviar" disabled>Criar estudo</button>
             </div>
         </div>
 {% endblock %}
@@ -81,8 +53,8 @@
 
         function validarFormulario() {
             const temArquivo = inputArquivo.files.length > 0;
-            const temOpcao   = document.querySelector('.opcao.selecionada') !== null;
-            btnEnviar.disabled = !(temArquivo && temOpcao);
+            const temNome   = document.getElementById('nomeEstudo').value.trim() !== '';
+            btnEnviar.disabled = !(temArquivo && temNome);
         }
 
         const MAX_OPCOES = 3;
@@ -127,6 +99,8 @@
             }
         });
 
+        document.getElementById('nomeEstudo').addEventListener('input', validarFormulario);
+
         uploadArea.addEventListener('dragover', e => { 
             e.preventDefault(); 
             uploadArea.classList.add('dragover'); 
@@ -163,13 +137,14 @@
         });
 
         btnEnviar.addEventListener('click', async () => {
+            const arquivo = inputArquivo.files[0];
             const opcoesSelecionadas = [...document.querySelectorAll('.opcao.selecionada')]
                 .map(o => o.dataset.opcao);
 
             const arquivo = inputArquivo.files[0];
             const formData = new FormData();
             formData.append('arquivo', arquivo);
-            formData.append('opcoes', JSON.stringify(opcoesSelecionadas));
+            formData.append('nome', document.getElementById('nomeEstudo').value);
 
             btnEnviar.disabled = true;
             btnEnviar.textContent = 'Processando...';
@@ -179,14 +154,17 @@
                     method: 'POST',
                     body: formData
                 });
+
                 const data = await res.json();
-                if (data.status === 'erro') {
-                    mostrarAviso(data.mensagem);
-                } else {
-                    console.log(data);
+
+                if (!res.ok || data.status !== 'ok') {
+                    mostrarAviso(data.mensagem || 'Erro ao processar o PDF.');
+                    return;
                 }
-            } catch (e) {
-                mostrarAviso('Erro inesperado. Tente novamente.');
+
+                window.location.href = data.redirect_url;
+            } catch (error) {
+                mostrarAviso('Erro de conexao. Tente novamente.');
             } finally {
                 btnEnviar.disabled = false;
                 btnEnviar.textContent = 'Enviar e Analisar';
