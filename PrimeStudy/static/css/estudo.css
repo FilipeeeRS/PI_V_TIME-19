@@ -119,14 +119,14 @@
 }
 
 /* --- Conteúdo gerado --- */
+/* --- Conteúdo gerado --- */
 .resultado-content {
     color: var(--color-text, #e8e8e8);
     font-size: 14px;
-    line-height: 1.75;
-    white-space: pre-wrap;
-    max-height: 420px;
+    line-height: 1.8;
+    max-height: 520px;
     overflow-y: auto;
-    padding-right: 4px;
+    padding-right: 8px;
 }
 
 .resultado-content::-webkit-scrollbar {
@@ -137,6 +137,96 @@
     border-radius: 99px;
 }
 
+/* Markdown renderizado */
+.resultado-content h1,
+.resultado-content h2,
+.resultado-content h3 {
+    color: #c084fc;
+    font-weight: 600;
+    margin: 16px 0 6px;
+    line-height: 1.3;
+}
+
+.resultado-content h1 { font-size: 17px; }
+.resultado-content h2 { font-size: 15px; }
+.resultado-content h3 { font-size: 14px; }
+
+.resultado-content p {
+    margin: 0 0 10px;
+}
+
+.resultado-content ul,
+.resultado-content ol {
+    padding-left: 20px;
+    margin: 6px 0 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.resultado-content li {
+    margin: 0;
+}
+
+.resultado-content strong {
+    color: #e2d9f3;
+    font-weight: 600;
+}
+
+.resultado-content em {
+    color: #a78bca;
+}
+
+.resultado-content hr {
+    border: none;
+    border-top: 1px solid #2a2a2a;
+    margin: 14px 0;
+}
+
+.resultado-content code {
+    background: #2a2a2a;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 12px;
+    font-family: monospace;
+    color: #c084fc;
+}
+
+/* Flashcards — destaque especial para P: e R: */
+.resultado-flashcard p {
+    background: #1e1e1e;
+    border-left: 3px solid #7017b1;
+    padding: 8px 12px;
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 8px;
+}
+
+/* Questões — numerar com destaque */
+.resultado-questoes ol {
+    counter-reset: questao;
+    list-style: none;
+    padding: 0;
+}
+
+.resultado-questoes ol > li {
+    counter-increment: questao;
+    background: #1e1e1e;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+}
+
+.resultado-questoes ol > li::before {
+    content: "Questão " counter(questao);
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #7017b1;
+    margin-bottom: 6px;
+}
 /* --- Chips de opções --- */
 .opcoes-chips {
     display: flex;
@@ -215,4 +305,20 @@
     .msg {
         max-width: 100%;
     }
+}
+
+.fc-btn {
+    background: #222;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    color: #aaa;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 6px 14px;
+    transition: all 0.15s ease;
+    font-family: inherit;
+}
+.fc-btn:hover {
+    border-color: #7017b1;
+    color: #e8e8e8;
 }
