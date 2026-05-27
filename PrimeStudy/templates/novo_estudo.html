@@ -34,141 +34,151 @@
 
 {% block scripts %}
     <script>
-        const uploadArea   = document.getElementById('uploadArea');
-        const inputArquivo = document.getElementById('inputArquivo');
-        const arquivoDiv   = document.getElementById('arquivoSelecionado');
-        const nomeArquivo  = document.getElementById('nomeArquivo');
-        const btnEnviar    = document.getElementById('btnEnviar');
-        const opcoes       = document.querySelectorAll('.opcao');
-        const opcoesGrid   = document.getElementById('opcoesGrid');
-        const avisoGeral   = document.getElementById('avisoGeral');
-        let timeoutAviso;
+    const uploadArea   = document.getElementById('uploadArea');
+    const inputArquivo = document.getElementById('inputArquivo');
+    const arquivoDiv   = document.getElementById('arquivoSelecionado');
+    const nomeArquivo  = document.getElementById('nomeArquivo');
+    const btnEnviar    = document.getElementById('btnEnviar');
+    const opcoes       = document.querySelectorAll('.opcao');
+    const opcoesGrid   = document.getElementById('opcoesGrid');
+    const avisoGeral   = document.getElementById('avisoGeral');
+    let timeoutAviso;
 
-        function mostrarAviso(mensagem) {
-            avisoGeral.textContent = mensagem;
-            avisoGeral.style.display = 'block';
-            clearTimeout(timeoutAviso);
-            timeoutAviso = setTimeout(() => { avisoGeral.style.display = 'none'; }, 5000);
-        }
+    function mostrarAviso(mensagem) {
+        avisoGeral.textContent = mensagem;
+        avisoGeral.style.display = 'block';
+        clearTimeout(timeoutAviso);
+        timeoutAviso = setTimeout(() => { avisoGeral.style.display = 'none'; }, 5000);
+    }
 
-        function validarFormulario() {
-            const temArquivo = inputArquivo.files.length > 0;
-            const temNome   = document.getElementById('nomeEstudo').value.trim() !== '';
-            btnEnviar.disabled = !(temArquivo && temNome);
-        }
+    function validarFormulario() {
+        const temArquivo = inputArquivo.files.length > 0;
+        const temNome   = document.getElementById('nomeEstudo').value.trim() !== '';
+        btnEnviar.disabled = !(temArquivo && temNome);
+    }
 
-        const MAX_OPCOES = 3;
-        opcoes.forEach(opcao => {
-            opcao.addEventListener('click', function () {
-                const jaSelecionada = this.classList.contains('selecionada');
-                const totalSelecionadas = document.querySelectorAll('.opcao.selecionada').length;
+    const MAX_OPCOES = 3;
+    opcoes.forEach(opcao => {
+        opcao.addEventListener('click', function () {
+            const jaSelecionada = this.classList.contains('selecionada');
+            const totalSelecionadas = document.querySelectorAll('.opcao.selecionada').length;
 
-                if (jaSelecionada) {
-                    this.classList.remove('selecionada');
-                    if (document.querySelectorAll('.opcao.selecionada').length === 0) {
-                        opcoesGrid.classList.remove('tem-selecao');
-                    }
-                } else {
-                    if (totalSelecionadas >= MAX_OPCOES) {
-                        mostrarAviso('Selecione no máximo 3 opções.');
-                        return;
-                    }
-                    this.classList.add('selecionada');
-                    opcoesGrid.classList.add('tem-selecao');
+            if (jaSelecionada) {
+                this.classList.remove('selecionada');
+                if (document.querySelectorAll('.opcao.selecionada').length === 0) {
+                    opcoesGrid.classList.remove('tem-selecao');
                 }
-                validarFormulario();
-            });
-        });
-
-        document.getElementById('btnEscolher').addEventListener('click', e => {
-            e.stopPropagation();
-            inputArquivo.click();
-        });
-
-        inputArquivo.addEventListener('change', function () {
-            const file = this.files[0];
-            if (file) {
-                if (file.type === 'application/pdf') {
-                    selecionarArquivo(file);
-                } else {
-                    mostrarAviso("Apenas PDF são aceitos.");
-                    this.value = '';
-                    arquivoDiv.style.display = 'none';
-                    validarFormulario();
-                }
-            }
-        });
-
-        document.getElementById('nomeEstudo').addEventListener('input', validarFormulario);
-
-        uploadArea.addEventListener('dragover', e => { 
-            e.preventDefault(); 
-            uploadArea.classList.add('dragover'); 
-        });
-
-        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
-
-        uploadArea.addEventListener('drop', e => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            const file = e.dataTransfer.files[0];
-
-            if (file && file.type === 'application/pdf') {
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                inputArquivo.files = dataTransfer.files;
-                selecionarArquivo(file);
             } else {
-                mostrarAviso("Por favor, selecione apenas arquivos no formato PDF.");
-            }
-        });
-
-        function selecionarArquivo(file) {
-            nomeArquivo.textContent = file.name;
-            arquivoDiv.style.display = 'flex';
-            avisoGeral.style.display = 'none';
-            validarFormulario();
-        }
-
-        document.getElementById('btnRemover').addEventListener('click', () => {
-            inputArquivo.value = '';
-            arquivoDiv.style.display = 'none';
-            validarFormulario();
-        });
-
-        btnEnviar.addEventListener('click', async () => {
-            const arquivo = inputArquivo.files[0];
-            const opcoesSelecionadas = [...document.querySelectorAll('.opcao.selecionada')]
-                .map(o => o.dataset.opcao);
-
-            const arquivo = inputArquivo.files[0];
-            const formData = new FormData();
-            formData.append('arquivo', arquivo);
-            formData.append('nome', document.getElementById('nomeEstudo').value);
-
-            btnEnviar.disabled = true;
-            btnEnviar.textContent = 'Processando...';
-
-            try {
-                const res = await fetch('/api/processar', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await res.json();
-
-                if (!res.ok || data.status !== 'ok') {
-                    mostrarAviso(data.mensagem || 'Erro ao processar o PDF.');
+                if (totalSelecionadas >= MAX_OPCOES) {
+                    mostrarAviso('Selecione no máximo 3 opções.');
                     return;
                 }
-
-                window.location.href = data.redirect_url;
-            } catch (error) {
-                mostrarAviso('Erro de conexao. Tente novamente.');
-            } finally {
-                btnEnviar.disabled = false;
-                btnEnviar.textContent = 'Enviar e Analisar';
+                this.classList.add('selecionada');
+                opcoesGrid.classList.add('tem-selecao');
             }
+            validarFormulario();
         });
-    </script>
+    });
+
+    // Torna a área inteira clicável, não apenas o botão
+    uploadArea.addEventListener('click', () => {
+        inputArquivo.click();
+    });
+
+    inputArquivo.addEventListener('change', function () {
+        const file = this.files[0];
+        if (file) {
+            if (file.type === 'application/pdf') {
+                selecionarArquivo(file);
+            } else {
+                mostrarAviso("Apenas PDF são aceitos.");
+                this.value = '';
+                arquivoDiv.style.display = 'none';
+                validarFormulario();
+            }
+        }
+    });
+
+    document.getElementById('nomeEstudo').addEventListener('input', validarFormulario);
+
+    // Eventos de Drag & Drop
+    uploadArea.addEventListener('dragover', e => { 
+        e.preventDefault(); 
+        uploadArea.classList.add('dragover'); 
+    });
+
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+
+    uploadArea.addEventListener('drop', e => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+
+        if (file && file.type === 'application/pdf') {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            inputArquivo.files = dataTransfer.files;
+            selecionarArquivo(file);
+        } else {
+            mostrarAviso("Por favor, selecione apenas arquivos no formato PDF.");
+        }
+    });
+
+    function selecionarArquivo(file) {
+        nomeArquivo.textContent = file.name;
+        arquivoDiv.style.display = 'flex';
+        avisoGeral.style.display = 'none';
+        
+        // Dica: Preenche o nome do estudo automaticamente com o nome do PDF (sem o .pdf)
+        const nomeEstudoInput = document.getElementById('nomeEstudo');
+        if (nomeEstudoInput.value.trim() === '') {
+            nomeEstudoInput.value = file.name.replace('.pdf', '');
+        }
+        
+        validarFormulario();
+    }
+
+    document.getElementById('btnRemover').addEventListener('click', () => {
+        inputArquivo.value = '';
+        arquivoDiv.style.display = 'none';
+        document.getElementById('nomeEstudo').value = ''; // Limpa o nome também
+        validarFormulario();
+    });
+
+    btnEnviar.addEventListener('click', async () => {
+        // Correção: Variável declarada apenas uma vez
+        const arquivo = inputArquivo.files[0];
+        const opcoesSelecionadas = [...document.querySelectorAll('.opcao.selecionada')].map(o => o.dataset.opcao);
+        
+        const formData = new FormData();
+        formData.append('arquivo', arquivo);
+        formData.append('nome', document.getElementById('nomeEstudo').value);
+        formData.append('opcoes', JSON.stringify(opcoesSelecionadas)); // Adicionado para enviar as opções
+
+        btnEnviar.disabled = true;
+        btnEnviar.textContent = 'Processando...';
+
+        try {
+            const res = await fetch('/api/processar', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await res.json();
+
+            if (!res.ok || data.status !== 'ok') {
+                mostrarAviso(data.mensagem || 'Erro ao processar o PDF.');
+                btnEnviar.disabled = false;
+                btnEnviar.textContent = 'Criar estudo';
+                return;
+            }
+
+            window.location.href = data.redirect_url;
+        } catch (error) {
+            mostrarAviso('Erro de conexão. Tente novamente.');
+            btnEnviar.disabled = false;
+            btnEnviar.textContent = 'Criar estudo';
+        }
+    });
+</script>
 {% endblock %}

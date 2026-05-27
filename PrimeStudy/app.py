@@ -1,15 +1,19 @@
+import os
+from dotenv import load_dotenv
+
+# 1. Carrega as chaves secretas PRIMEIRO
+load_dotenv()
+
+# 2. Depois faz o resto das importações
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, abort
 import firebase_config
 from firebase_admin import auth, firestore
-import os
-from dotenv import load_dotenv
 from firebase_config import db
 import pdfplumber
 import io 
 from services.gemini_services import gerar_conteudo
 import json 
 
-load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'troque-por-uma-chave-secreta-forte')
 
@@ -107,6 +111,7 @@ def visualizar_estudo(estudo_id):
         estudo=estudo_data,
         nome_materia=nome_materia # Enviando a variável para o HTML
     )
+    
 @app.route('/materia/<materia_id>')
 def visualizar_materia(materia_id):
     uid = session.get('uid')
@@ -257,7 +262,7 @@ def desvincular_materia(estudo_id):
     })
     return jsonify({'status': 'ok'})
 
-### criar novo estudo
+### CRIAR NOVO ESTUDO - ATUALIZADO PARA SUPORTAR UPLOAD DENTRO DA MATÉRIA
 @app.route('/api/processar', methods=['POST'])
 def processar_pdf():
     uid = session.get('uid')
@@ -267,6 +272,9 @@ def processar_pdf():
     arquivo = request.files.get('arquivo')
     nome = request.form.get('nome') or arquivo.filename
     opcoes = json.loads(request.form.get('opcoes', '[]'))
+    
+    # NOVO: Recebe o ID da matéria caso o upload venha diretamente da página da matéria
+    materia_id_form = request.form.get('materia_id') 
 
     if not arquivo:
         return jsonify({'status': 'erro', 'mensagem': 'Nenhum arquivo enviado'}), 400
@@ -279,21 +287,41 @@ def processar_pdf():
                 texto += conteudo + '\n'
 
     if not texto.strip():
-        if not texto.strip():
-            return jsonify({
-                'status': 'erro', 
-                'mensagem': 'Este PDF contém imagens escaneadas e não possui texto legível. Por favor, envie um PDF com texto selecionável.'
-            }), 400
+        return jsonify({
+            'status': 'erro', 
+            'mensagem': 'Este PDF contém imagens escaneadas e não possui texto legível. Por favor, envie um PDF com texto selecionável.'
+        }), 400
 
+    materia_id = materia_id_form # Assume a matéria do formulário (se existir)
+
+    # Só pede para a IA sugerir uma matéria se o utilizador NÃO tiver enviado uma
+    if not materia_id:
+        materia_sugerida = gerar_conteudo('sugerir_materia', texto[:2000]).strip()
+        materia_sugerida = materia_sugerida.replace('*', '').replace('`', '').strip()
+        
+        if materia_sugerida and len(materia_sugerida) <= 40 and "Erro" not in materia_sugerida:
+            materias_ref = db.collection('usuarios').document(uid).collection('materias')
+            query = materias_ref.where('nome', '==', materia_sugerida).limit(1).stream()
+            for doc_m in query:
+                materia_id = doc_m.id
+                break
+            
+            if not materia_id:
+                nova_materia = materias_ref.add({'nome': materia_sugerida, 'cor': '#7017B1', 'estudos': 0})
+                materia_id = nova_materia[1].id
 
     estudo_ref = db.collection('usuarios').document(uid).collection('estudos').document()
     
-    estudo_ref.set({
+    novo_estudo_data = {
         'nome': nome,
         'texto': texto,
-        'conteudo': {}, # fazer dps com a IA
+        'conteudo': {}, 
         'criado_em': firestore.SERVER_TIMESTAMP
-    })
+    }
+    if materia_id:
+        novo_estudo_data['materia_id'] = materia_id
+        
+    estudo_ref.set(novo_estudo_data)
 
     return jsonify({
         'status': 'ok',
@@ -305,21 +333,52 @@ def processar_pdf():
 def gerar_conteudo_route():
     uid = session.get('uid')
     if not uid:
-        return jsonify({'status': 'erro'}), 401
+        return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
 
     data = request.get_json()
     estudo_id = data.get('estudo_id')
     tipo = data.get('tipo')
+    acao = data.get('acao', 'novo')
 
     doc_ref = db.collection('usuarios').document(uid).collection('estudos').document(estudo_id)
     estudo = doc_ref.get().to_dict()
     texto = estudo.get('texto', '')
 
-    resultado = gerar_conteudo(tipo, texto)
+    # --- LÓGICA NOVA: QUESTÕES DO RESUMO ---
+    tipo_ia = tipo
+    tipo_salvar = tipo
+    
+    if tipo == 'questoes_resumo':
+        texto = estudo.get('conteudo', {}).get('resumo', '')
+        if not texto:
+            return jsonify({'status': 'erro', 'mensagem': 'Por favor, gere um Resumo normal primeiro!'})
+        tipo_ia = 'questoes' # Enganamos a IA para gerar questões no formato JSON
+        tipo_salvar = 'questoes' # Guardamos como questões para ativar a interatividade do Quiz
+        acao = 'novo' # Sobrescreve as questões antigas com as novas focadas no resumo
 
-    doc_ref.update({f'conteudo.{tipo}': resultado})
+    # Puxa o conteúdo antigo do banco caso a ação seja 'mais'
+    conteudo_existente = estudo.get('conteudo', {}).get(tipo_salvar, '') if acao == 'mais' else ''
 
-    return jsonify({'status': 'ok', 'conteudo': resultado})
+    # Passa o histórico e o texto correto (PDF ou Resumo) para a IA
+    resultado = gerar_conteudo(tipo_ia, texto, conteudo_existente)
+
+    # Mescla o conteúdo novo com o antigo antes de salvar no Firebase
+    conteudo_final = resultado
+    if acao == 'mais' and conteudo_existente:
+        if tipo_salvar == 'questoes':
+            try:
+                lista_antiga = json.loads(conteudo_existente)
+                lista_nova = json.loads(resultado)
+                conteudo_final = json.dumps(lista_antiga + lista_nova)
+            except:
+                pass
+        else:
+            conteudo_final = conteudo_existente + "\n\n" + resultado
+
+    doc_ref.update({f'conteudo.{tipo_salvar}': conteudo_final})
+
+    # O back-end devolve o tipo_render para o front-end saber renderizar as questoes interativas
+    return jsonify({'status': 'ok', 'conteudo': conteudo_final, 'tipo_render': tipo_salvar})
 
 if __name__ == '__main__':
     app.run(debug=True)

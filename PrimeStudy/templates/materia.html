@@ -31,6 +31,13 @@
     <h1 class="materia-titulo">{{ materia.nome }}</h1>
     <p class="materia-stats">Você tem {{ estudos_materia|length }} estudo(s) nesta matéria.</p>
 
+    <div style="margin-bottom: 25px;">
+        <input type="file" id="fileUploadMateria" accept="application/pdf" style="display: none;">
+        <button id="btnUploadMateria" style="background-color: var(--color-primary); color: white; padding: 12px 24px; font-weight: bold; cursor: pointer; border: none; border-radius: 8px; font-size: 14px; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'" onclick="document.getElementById('fileUploadMateria').click()">
+            ➕ Adicionar PDF nesta Matéria
+        </button>
+    </div>
+
     <div class="lista-estudos-materia">
         {% if estudos_materia %}
             {% for est in estudos_materia %}
@@ -44,9 +51,54 @@
             {% endfor %}
         {% else %}
             <div style="color: #666; font-style: italic; padding: 20px; border: 1px dashed #444; border-radius: 10px; text-align: center;">
-                Nenhum estudo movido para esta matéria ainda.
+                Nenhum estudo adicionado a esta matéria ainda. Clique no botão acima para adicionar um PDF!
             </div>
         {% endif %}
     </div>
 </div>
+
+<script>
+    document.getElementById('fileUploadMateria').addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const btn = document.getElementById('btnUploadMateria');
+        const textoOriginal = btn.innerText;
+        
+        // Efeito visual de carregamento
+        btn.innerText = "⏳ A processar PDF...";
+        btn.style.opacity = "0.7";
+        btn.disabled = true;
+
+        // Prepara os dados para enviar, INCLUINDO O ID DA MATÉRIA
+        const formData = new FormData();
+        formData.append('arquivo', file);
+        formData.append('nome', file.name.replace('.pdf', ''));
+        formData.append('materia_id', '{{ materia.id }}'); // Injeta o ID da matéria atual
+
+        try {
+            const response = await fetch('/api/processar', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'ok') {
+                // Sucesso! Redireciona o utilizador diretamente para o ecrã do novo estudo
+                window.location.href = data.redirect_url;
+            } else {
+                alert('Erro: ' + data.mensagem);
+                btn.innerText = textoOriginal;
+                btn.style.opacity = "1";
+                btn.disabled = false;
+            }
+        } catch (error) {
+            alert('Erro crítico ao enviar o ficheiro.');
+            btn.innerText = textoOriginal;
+            btn.style.opacity = "1";
+            btn.disabled = false;
+        }
+    });
+</script>
 {% endblock %}

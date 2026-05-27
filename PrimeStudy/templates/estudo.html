@@ -47,11 +47,13 @@
 
     const LABELS = {
         resumo:    '📝 Resumo',
+        resumo_menor: '🤏 Resumo Menor',
+        questoes_resumo: '🎯 Questões do Resumo',
         flashcard: '🃏 Flashcards',
         questoes:  '❓ Questões',
         mapa:      '🗺️ Mapa Mental',
         checklist: '✅ Checklist',
-        topicos:   '📌 Tópicos',
+        topicos:   '📌 Tópicos'
     };
 
     const CHIPS_HTML = `
@@ -94,145 +96,287 @@
         return msg;
     }
 
-function parsearFlashcards(texto) {
-    const cards = [];
-    const linhas = texto.split('\n');
-    let cardAtual = null;
+    // --- FUNÇÕES DE FLASHCARDS ---
+    function parsearFlashcards(texto) {
+        const cards = [];
+        const linhas = texto.split('\n');
+        let cardAtual = null;
 
-    for (const linha of linhas) {
-        const limpa = linha.trim();
-        if (limpa.startsWith('P:')) {
-            if (cardAtual) cards.push(cardAtual);
-            cardAtual = { pergunta: limpa.replace(/^P:\s*/, ''), resposta: '' };
-        } else if (limpa.startsWith('R:') && cardAtual) {
-            cardAtual.resposta = limpa.replace(/^R:\s*/, '');
+        for (const linha of linhas) {
+            const limpa = linha.trim();
+            if (limpa.startsWith('P:')) {
+                if (cardAtual) cards.push(cardAtual);
+                cardAtual = { pergunta: limpa.replace(/^P:\s*/, ''), resposta: '' };
+            } else if (limpa.startsWith('R:') && cardAtual) {
+                cardAtual.resposta = limpa.replace(/^R:\s*/, '');
+            }
         }
-    }
-    if (cardAtual) cards.push(cardAtual);
-    return cards;
-}
-
-function renderFlashcards(cards) {
-    let atual = 0;
-    const vistos = new Set();
-    const uid = Math.random().toString(36).slice(2);
-
-    function dotsSvg() {
-        return cards.map((_, i) =>
-            `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${i===atual?'#7017b1':'#2a2a2a'};transition:background 0.2s;margin:0 3px;"></span>`
-        ).join('');
+        if (cardAtual) cards.push(cardAtual);
+        return cards;
     }
 
-    const html = `
-        <div class="fc-wrapper" id="fcw-${uid}">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-                <span class="fc-counter" style="font-size:13px;color:#aaa;">Card 1 de ${cards.length}</span>
-                <div style="display:flex;gap:8px;">
-                    <button class="fc-btn fc-prev" style="opacity:0.3;cursor:not-allowed;">← Anterior</button>
-                    <button class="fc-btn fc-next">Próximo →</button>
-                </div>
-            </div>
-            <div class="fc-scene" style="perspective:1000px;width:100%;height:200px;cursor:pointer;">
-                <div class="fc-card-inner" style="width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform 0.5s cubic-bezier(0.4,0,0.2,1);border-radius:14px;">
-                    <div class="fc-face fc-front" style="position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:14px;background:#1a1a1a;border:1px solid #2a2a2a;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;">
-                        <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7017b1;margin-bottom:12px;">Pergunta</span>
-                        <p class="fc-pergunta" style="font-size:15px;color:#e8e8e8;text-align:center;line-height:1.6;margin:0;">${cards[0].pergunta}</p>
-                        <span style="font-size:12px;color:#444;margin-top:14px;">clique para revelar</span>
-                    </div>
-                    <div class="fc-face fc-back" style="position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:14px;background:#1e1228;border:1px solid #7017b1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;transform:rotateY(180deg);">
-                        <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#c084fc;margin-bottom:12px;">Resposta</span>
-                        <p class="fc-resposta" style="font-size:15px;color:#e8e8e8;text-align:center;line-height:1.6;margin:0;">${cards[0].resposta}</p>
+    function renderFlashcards(cards) {
+        let atual = 0;
+        const vistos = new Set();
+        const uid = Math.random().toString(36).slice(2);
+
+        function dotsSvg() {
+            return cards.map((_, i) =>
+                `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${i===atual?'#7017b1':'#2a2a2a'};transition:background 0.2s;margin:0 3px;"></span>`
+            ).join('');
+        }
+
+        const html = `
+            <div class="fc-wrapper" id="fcw-${uid}">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                    <span class="fc-counter" style="font-size:13px;color:#aaa;">Card 1 de ${cards.length}</span>
+                    <div style="display:flex;gap:8px;">
+                        <button class="fc-btn fc-prev" style="opacity:0.3;cursor:not-allowed;">← Anterior</button>
+                        <button class="fc-btn fc-next">Próximo →</button>
                     </div>
                 </div>
-            </div>
-            <div class="fc-dots" style="text-align:center;margin-top:14px;">${dotsSvg()}</div>
-            <p class="fc-prog" style="font-size:12px;color:#555;text-align:center;margin-top:8px;">0 de ${cards.length} revisados</p>
-        </div>`;
+                <div class="fc-scene" style="perspective:1000px;width:100%;height:200px;cursor:pointer;">
+                    <div class="fc-card-inner" style="width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform 0.5s cubic-bezier(0.4,0,0.2,1);border-radius:14px;">
+                        <div class="fc-face fc-front" style="position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:14px;background:#1a1a1a;border:1px solid #2a2a2a;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;">
+                            <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7017b1;margin-bottom:12px;">Pergunta</span>
+                            <p class="fc-pergunta" style="font-size:15px;color:#e8e8e8;text-align:center;line-height:1.6;margin:0;">${cards[0].pergunta}</p>
+                            <span style="font-size:12px;color:#444;margin-top:14px;">clique para revelar</span>
+                        </div>
+                        <div class="fc-face fc-back" style="position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:14px;background:#1e1228;border:1px solid #7017b1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;transform:rotateY(180deg);">
+                            <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#c084fc;margin-bottom:12px;">Resposta</span>
+                            <p class="fc-resposta" style="font-size:15px;color:#e8e8e8;text-align:center;line-height:1.6;margin:0;">${cards[0].resposta}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="fc-dots" style="text-align:center;margin-top:14px;">${dotsSvg()}</div>
+                <p class="fc-prog" style="font-size:12px;color:#555;text-align:center;margin-top:8px;">0 de ${cards.length} revisados</p>
+            </div>`;
 
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = html;
-    const el = wrapper.firstElementChild;
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = html;
+        const el = wrapper.firstElementChild;
 
-    const inner = el.querySelector('.fc-card-inner');
-    const perguntaEl = el.querySelector('.fc-pergunta');
-    const respostaEl = el.querySelector('.fc-resposta');
-    const counterEl = el.querySelector('.fc-counter');
-    const dotsEl = el.querySelector('.fc-dots');
-    const progEl = el.querySelector('.fc-prog');
-    const btnPrev = el.querySelector('.fc-prev');
-    const btnNext = el.querySelector('.fc-next');
+        const inner = el.querySelector('.fc-card-inner');
+        const perguntaEl = el.querySelector('.fc-pergunta');
+        const respostaEl = el.querySelector('.fc-resposta');
+        const counterEl = el.querySelector('.fc-counter');
+        const dotsEl = el.querySelector('.fc-dots');
+        const progEl = el.querySelector('.fc-prog');
+        const btnPrev = el.querySelector('.fc-prev');
+        const btnNext = el.querySelector('.fc-next');
 
-    function atualizar() {
-        inner.style.transform = '';
-        perguntaEl.textContent = cards[atual].pergunta;
-        respostaEl.textContent = cards[atual].resposta;
-        counterEl.textContent = `Card ${atual + 1} de ${cards.length}`;
-        dotsEl.innerHTML = dotsSvg();
-        btnPrev.style.opacity = atual === 0 ? '0.3' : '1';
-        btnPrev.style.cursor = atual === 0 ? 'not-allowed' : 'pointer';
-        btnNext.style.opacity = atual === cards.length - 1 ? '0.3' : '1';
-        btnNext.style.cursor = atual === cards.length - 1 ? 'not-allowed' : 'pointer';
-        vistos.add(atual);
-        progEl.textContent = vistos.size === cards.length
-            ? '✓ Todos os cards revisados!'
-            : `${vistos.size} de ${cards.length} revisados`;
+        function atualizar() {
+            inner.style.transform = '';
+            perguntaEl.textContent = cards[atual].pergunta;
+            respostaEl.textContent = cards[atual].resposta;
+            counterEl.textContent = `Card ${atual + 1} de ${cards.length}`;
+            dotsEl.innerHTML = dotsSvg();
+            btnPrev.style.opacity = atual === 0 ? '0.3' : '1';
+            btnPrev.style.cursor = atual === 0 ? 'not-allowed' : 'pointer';
+            btnNext.style.opacity = atual === cards.length - 1 ? '0.3' : '1';
+            btnNext.style.cursor = atual === cards.length - 1 ? 'not-allowed' : 'pointer';
+            vistos.add(atual);
+            progEl.textContent = vistos.size === cards.length
+                ? '✓ Todos os cards revisados!'
+                : `${vistos.size} de ${cards.length} revisados`;
+        }
+
+        el.querySelector('.fc-scene').addEventListener('click', () => {
+            const virado = inner.style.transform === 'rotateY(180deg)';
+            inner.style.transform = virado ? '' : 'rotateY(180deg)';
+        });
+        btnNext.addEventListener('click', () => { if (atual < cards.length - 1) { atual++; atualizar(); } });
+        btnPrev.addEventListener('click', () => { if (atual > 0) { atual--; atualizar(); } });
+
+        return el;
     }
 
-    el.querySelector('.fc-scene').addEventListener('click', () => {
-        const virado = inner.style.transform === 'rotateY(180deg)';
-        inner.style.transform = virado ? '' : 'rotateY(180deg)';
-    });
-    btnNext.addEventListener('click', () => { if (atual < cards.length - 1) { atual++; atualizar(); } });
-    btnPrev.addEventListener('click', () => { if (atual > 0) { atual--; atualizar(); } });
+    // --- NOVA FUNÇÃO DE QUESTÕES INTERATIVAS ---
+    function renderQuestoes(textoJson) {
+        let questoes = [];
+        try {
+            questoes = JSON.parse(textoJson);
+        } catch (e) {
+            console.error("Erro no JSON das questões:", e);
+            const erroDiv = document.createElement('div');
+            erroDiv.innerHTML = "<p style='color:#e74c3c;'>Erro ao ler as questões geradas. Tente novamente.</p>";
+            return erroDiv;
+        }
 
-    return el;
-}
+        const wrapper = document.createElement('div');
+        wrapper.style.display = 'flex';
+        wrapper.style.flexDirection = 'column';
+        wrapper.style.gap = '20px';
+        wrapper.style.marginTop = '10px';
 
-function addAiMessage(content, tipo) {
-    const loadingMsg = document.getElementById('loadingMsg');
-    if (loadingMsg) loadingMsg.remove();
+        questoes.forEach((q, index) => {
+            const qCard = document.createElement('div');
+            qCard.style.background = '#1a1a1a';
+            qCard.style.border = '1px solid #2a2a2a';
+            qCard.style.borderRadius = '12px';
+            qCard.style.padding = '20px';
 
-    const msg = document.createElement('div');
-    msg.className = 'msg msg-ai msg-enter';
+            const pTitle = document.createElement('h4');
+            pTitle.textContent = `Questão ${index + 1}`;
+            pTitle.style.color = '#7017b1';
+            pTitle.style.margin = '0 0 10px 0';
+            pTitle.style.fontSize = '14px';
+            pTitle.style.textTransform = 'uppercase';
 
-    const body = document.createElement('div');
-    body.className = 'msg-body';
+            const pText = document.createElement('p');
+            pText.textContent = q.pergunta;
+            pText.style.color = '#e8e8e8';
+            pText.style.margin = '0 0 16px 0';
+            pText.style.lineHeight = '1.5';
 
-    const avatar = document.createElement('div');
-    avatar.className = 'msg-avatar';
-    avatar.textContent = '✦';
+            qCard.appendChild(pTitle);
+            qCard.appendChild(pText);
 
-    if (tipo === 'flashcard') {
-        const cards = parsearFlashcards(content);
-        if (cards.length > 0) {
-            body.appendChild(renderFlashcards(cards));
-        } else {
+            const altContainer = document.createElement('div');
+            altContainer.style.display = 'flex';
+            altContainer.style.flexDirection = 'column';
+            altContainer.style.gap = '8px';
+
+            let respondida = false;
+
+            q.alternativas.forEach((altTexto, altIndex) => {
+                const btn = document.createElement('button');
+                btn.textContent = altTexto;
+                btn.style.background = '#222';
+                btn.style.color = '#ccc';
+                btn.style.border = '1px solid #333';
+                btn.style.borderRadius = '8px';
+                btn.style.padding = '12px 16px';
+                btn.style.textAlign = 'left';
+                btn.style.cursor = 'pointer';
+                btn.style.transition = 'all 0.2s';
+                btn.style.fontFamily = 'inherit';
+                btn.style.fontSize = '14px';
+
+                btn.addEventListener('mouseover', () => {
+                    if (!respondida) btn.style.background = '#2a2a2a';
+                });
+                btn.addEventListener('mouseout', () => {
+                    if (!respondida) btn.style.background = '#222';
+                });
+
+                btn.addEventListener('click', () => {
+                    if (respondida) return;
+                    respondida = true;
+
+                    Array.from(altContainer.children).forEach((outroBtn, i) => {
+                        outroBtn.style.cursor = 'default';
+                        
+                        if (i === q.correta) {
+                            outroBtn.style.background = 'rgba(46, 204, 113, 0.15)';
+                            outroBtn.style.borderColor = '#2ecc71';
+                            outroBtn.style.color = '#2ecc71';
+                        } else if (i === altIndex && i !== q.correta) {
+                            outroBtn.style.background = 'rgba(231, 76, 60, 0.15)';
+                            outroBtn.style.borderColor = '#e74c3c';
+                            outroBtn.style.color = '#e74c3c';
+                        } else {
+                            outroBtn.style.opacity = '0.4';
+                        }
+                    });
+                });
+
+                altContainer.appendChild(btn);
+            });
+
+            qCard.appendChild(altContainer);
+            wrapper.appendChild(qCard);
+        });
+
+        return wrapper;
+    }
+
+    // --- FUNÇÃO PARA CRIAR A MENSAGEM DA IA NO CHAT ---
+    function addAiMessage(content, tipo) {
+        const loadingMsg = document.getElementById('loadingMsg');
+        if (loadingMsg) loadingMsg.remove();
+
+        const msg = document.createElement('div');
+        msg.className = 'msg msg-ai msg-enter';
+
+        const body = document.createElement('div');
+        body.className = 'msg-body';
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'msg-avatar';
+        avatar.textContent = '✦';
+
+        // Trata o tipo de conteúdo a renderizar
+        if (tipo === 'flashcard') {
+            const cards = parsearFlashcards(content);
+            if (cards.length > 0) {
+                body.appendChild(renderFlashcards(cards));
+            } else {
+                const div = document.createElement('div');
+                div.className = 'resultado-content';
+                div.innerHTML = marked.parse(content);
+                body.appendChild(div);
+            }
+        } else if (tipo === 'questoes') {
             const div = document.createElement('div');
             div.className = 'resultado-content';
+            div.appendChild(renderQuestoes(content));
+            body.appendChild(div);
+        } else {
+            const div = document.createElement('div');
+            div.className = `resultado-content resultado-${tipo || ''}`;
             div.innerHTML = marked.parse(content);
             body.appendChild(div);
         }
-    } else {
-        const div = document.createElement('div');
-        div.className = `resultado-content resultado-${tipo || ''}`;
-        div.innerHTML = marked.parse(content);
-        body.appendChild(div);
+
+        // --- BOTÃO GERAR MAIS (Apenas para Questões e Flashcards) ---
+        if (tipo === 'questoes' || tipo === 'flashcard') {
+            const btnMais = document.createElement('button');
+            btnMais.className = 'chip';
+            btnMais.style.backgroundColor = 'rgba(112, 23, 177, 0.15)'; 
+            btnMais.style.borderColor = '#7017b1';
+            btnMais.style.color = '#c084fc';
+            btnMais.style.marginTop = '15px';
+            btnMais.style.marginBottom = '15px';
+            const labelNome = LABELS[tipo] ? LABELS[tipo].split(' ')[1] : 'Itens';
+            btnMais.innerHTML = `➕ Gerar Mais ${labelNome}`;
+            btnMais.onclick = () => handleOpcao(tipo, 'mais');
+            body.appendChild(btnMais);
+        }
+
+        // --- BOTÕES EXTRAS DE RESUMO ---
+        if (tipo === 'resumo' || tipo === 'resumo_menor') {
+            const divBotoes = document.createElement('div');
+            divBotoes.style.marginTop = '15px';
+            divBotoes.style.marginBottom = '15px';
+            divBotoes.style.display = 'flex';
+            divBotoes.style.gap = '10px';
+            divBotoes.style.flexWrap = 'wrap';
+
+            divBotoes.innerHTML = `
+                <button class="chip" style="background-color: rgba(112, 23, 177, 0.15); border-color: #7017b1; color: #c084fc;" onclick="handleOpcao('resumo', 'novo')">🔄 Regerar Resumo</button>
+                <button class="chip" style="background-color: rgba(112, 23, 177, 0.15); border-color: #7017b1; color: #c084fc;" onclick="handleOpcao('resumo_menor', 'novo')">🤏 Resumo Menor</button>
+                <button class="chip" style="background-color: rgba(112, 23, 177, 0.15); border-color: #7017b1; color: #c084fc;" onclick="handleOpcao('questoes_resumo', 'novo')">🎯 Questões do Resumo</button>
+            `;
+            body.appendChild(divBotoes);
+        }
+
+        // Insere as opções de chips padrão
+        body.insertAdjacentHTML('beforeend', CHIPS_HTML);
+
+        msg.appendChild(avatar);
+        msg.appendChild(body);
+        chatMessages.appendChild(msg);
+        bindChips(msg);
+        scrollToBottom();
     }
-
-    body.insertAdjacentHTML('beforeend', CHIPS_HTML);
-
-    msg.appendChild(avatar);
-    msg.appendChild(body);
-    chatMessages.appendChild(msg);
-    bindChips(msg);
-    scrollToBottom();
-}
 
     function disableAllChips() {
         document.querySelectorAll('.chip').forEach(c => c.disabled = true);
     }
 
-    async function handleOpcao(tipo) {
+    // --- FUNÇÃO DE CHAMADA À API (Apenas uma vez, escopo global) ---
+    async function handleOpcao(tipo, acao = 'novo') {
         disableAllChips();
         addUserMessage(LABELS[tipo] || tipo);
         addLoadingMessage();
@@ -241,31 +385,32 @@ function addAiMessage(content, tipo) {
             const res = await fetch('/api/gerar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ estudo_id: ESTUDO_ID, tipo })
+                body: JSON.stringify({ estudo_id: ESTUDO_ID, tipo: tipo, acao: acao })
             });
 
             const data = await res.json();
             const conteudo = data.conteudo || data.resultado || 'Conteúdo gerado com sucesso!';
-            addAiMessage(conteudo, tipo);
+            
+            addAiMessage(conteudo, data.tipo_render || tipo); 
         } catch (err) {
             const loadingMsg = document.getElementById('loadingMsg');
             if (loadingMsg) loadingMsg.remove();
-            addAiMessage('Ocorreu um erro ao gerar o conteúdo. Tente novamente.');
+            addAiMessage('Ocorreu um erro ao gerar o conteúdo. Tente novamente.', 'erro');
         }
     }
 
     function bindChips(container) {
-        container.querySelectorAll('.chip').forEach(chip => {
+        container.querySelectorAll('.opcoes-chips .chip').forEach(chip => {
             chip.addEventListener('click', () => handleOpcao(chip.dataset.opcao));
         });
     }
 
     bindChips(document.getElementById('chatMessages'));
 
-    // Renderiza conteúdo já salvo ao carregar a página
+    // Renderizar conteúdo histórico (salvo no banco de dados)
     const conteudoSalvo = {{ estudo.conteudo | tojson if estudo.conteudo else '{}' }};
-
     const ordem = ['resumo', 'flashcard', 'questoes', 'mapa', 'checklist', 'topicos'];
+    
     for (const tipo of ordem) {
         if (conteudoSalvo[tipo]) {
             addUserMessage(LABELS[tipo]);

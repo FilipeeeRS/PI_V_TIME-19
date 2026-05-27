@@ -268,13 +268,19 @@ body {
     min-width: 0;
     overflow: hidden;
     width: 100%;
+    background: linear-gradient(135deg, rgba(26, 26, 26, 0) 0%, rgba(112, 23, 177, 0.08) 100%);
+    border-radius: 24px;
+    margin: 20px;
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.2);
 }
 
 .welcome h1 {
-    font-size: 36px;
+    font-size: 42px;
     font-weight: bold;
-    margin: 0 0 12px 0;
-    color: var(--color-text);
+    margin: 0 0 16px 0;
+    background: -webkit-linear-gradient(45deg, #ffffff, #c084fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
