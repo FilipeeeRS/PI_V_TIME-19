@@ -2,6 +2,16 @@ import os
 import json
 from google import genai
 from google.genai import types
+from pydantic import BaseModel
+
+
+class Questao(BaseModel):
+    """Schema de saída estruturada para questões de múltipla escolha."""
+    pergunta: str
+    alternativas: list[str]
+    correta: int
+    explicacao: str
+
 
 def gerar_conteudo(tipo, texto, historico=""):
     try:
@@ -32,15 +42,33 @@ def gerar_conteudo(tipo, texto, historico=""):
         elif tipo == 'flashcards':
             prompt = regra_formatacao + aviso_historico + f"Crie flashcards de estudo baseados no texto no formato '<p><b>Pergunta:</b> ... <br> <b>Resposta:</b> ...</p>':\n\n{texto}"
         elif tipo == 'questoes':
+            regras_quiz = (
+                "Você é um professor especialista em elaborar avaliações de múltipla escolha. "
+                "Gere as questões em português do Brasil, baseadas ESTRITAMENTE no texto fornecido — "
+                "nunca invente fatos que não estejam no texto.\n"
+                "Regras de qualidade (siga todas):\n"
+                "1. Cada questão deve testar COMPREENSÃO e raciocínio, não apenas memorização literal.\n"
+                "2. Exatamente UMA alternativa correta e inequívoca; as outras 3 devem ser plausíveis, "
+                "do mesmo assunto e de tamanho parecido, sem serem obviamente erradas.\n"
+                "3. Varie a posição da alternativa correta entre as questões (não deixe sempre no mesmo índice).\n"
+                "4. Não use 'todas as anteriores' nem 'nenhuma das anteriores'.\n"
+                "5. Enunciados claros e autossuficientes; evite ambiguidade, negativas duplas e pegadinhas.\n"
+                "6. Aborde partes diferentes do texto, não apenas o começo.\n"
+                "7. Sempre exatamente 4 alternativas por questão.\n"
+                "8. 'correta' é o índice (0 a 3) da alternativa certa dentro de 'alternativas'.\n"
+                "9. 'explicacao' é 1 ou 2 frases curtas justificando por que a alternativa correta está certa."
+            )
             prompt = (
                 aviso_historico +
-                "Crie 5 questões de múltipla escolha sobre o texto, com 4 alternativas cada. "
-                "O formato deve ser ESTRITAMENTE este JSON:\n"
-                "[\n  {\n    \"pergunta\": \"Texto?\",\n    \"alternativas\": [\"A\", \"B\", \"C\", \"D\"],\n    \"correta\": 1\n  }\n]\n"
-                "Nota: O campo 'correta' deve ser o índice (0 a 3) da alternativa certa.\n\n"
+                "Crie 5 questões de múltipla escolha sobre o texto a seguir.\n\n"
                 f"Texto:\n{texto}"
             )
-            config = types.GenerateContentConfig(temperature=0.8, response_mime_type="application/json")
+            config = types.GenerateContentConfig(
+                temperature=0.8,
+                response_mime_type="application/json",
+                response_schema=list[Questao],
+                system_instruction=regras_quiz,
+            )
         elif tipo == 'sugerir_materia':
             prompt = f"Analise este texto e sugira um nome genérico e curto de disciplina/matéria (máximo de 3 palavras). Retorne APENAS o nome:\n\n{texto}"
         else:
@@ -56,9 +84,26 @@ def gerar_conteudo(tipo, texto, historico=""):
 
         if tipo == 'questoes':
             try:
-                json.loads(resultado_limpo)
-            except json.JSONDecodeError:
-                return '[{"pergunta": "Erro ao gerar questões.", "alternativas": ["-", "-", "-", "-"], "correta": 0}]'
+                dados = json.loads(resultado_limpo)
+                questoes_validas = []
+                for q in dados:
+                    alternativas = q.get('alternativas') or []
+                    if len(alternativas) < 2 or not q.get('pergunta'):
+                        continue
+                    correta = q.get('correta', 0)
+                    if not isinstance(correta, int) or correta < 0 or correta >= len(alternativas):
+                        correta = 0
+                    questoes_validas.append({
+                        'pergunta': q.get('pergunta', ''),
+                        'alternativas': alternativas,
+                        'correta': correta,
+                        'explicacao': q.get('explicacao', '')
+                    })
+                if not questoes_validas:
+                    raise ValueError('Nenhuma questão válida foi gerada')
+                resultado_limpo = json.dumps(questoes_validas, ensure_ascii=False)
+            except (json.JSONDecodeError, ValueError, AttributeError, TypeError):
+                return '[{"pergunta": "Erro ao gerar questões.", "alternativas": ["-", "-", "-", "-"], "correta": 0, "explicacao": ""}]'
 
         return resultado_limpo
 

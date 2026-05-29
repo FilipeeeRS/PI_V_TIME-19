@@ -353,3 +353,27 @@
     border-color: #7017b1;
     color: #e8e8e8;
 }
+
+/* ============================================================
+   POLISH PROFISSIONAL
+   ============================================================ */
+
+.chat-header { border-color: var(--border-soft); }
+
+.msg-ai .msg-body {
+    border-color: var(--border-soft);
+    box-shadow: var(--shadow-sm);
+}
+
+.msg-user .msg-body {
+    background-image: linear-gradient(135deg, var(--color-primary), var(--color-primary-2));
+    box-shadow: var(--shadow-glow);
+}
+
+.chip:hover:not(:disabled) { box-shadow: var(--shadow-glow); }
+
+.chip:focus-visible,
+.fc-btn:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+}

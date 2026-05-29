@@ -1,10 +1,38 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 :root {
+    /* Marca */
     --color-primary:    #7017B1;
-    --color-bg:         #1a1a1a;
-    --color-sidebar-bg: #121212;
-    --color-border:     #333;
-    --color-text-muted: #b3b3b3;
-    --color-text:       #ffffff;
+    --color-primary-2:  #9333ea;   /* fim do gradiente dos botões */
+    --color-accent:     #c084fc;
+
+    /* Superfícies (escala de elevação) */
+    --color-bg:         #141416;
+    --color-sidebar-bg: #0e0e10;
+    --surface-1:        #1a1a1e;
+    --surface-2:        #212127;
+    --surface-3:        #2a2a31;
+
+    /* Linhas / texto */
+    --color-border:     #2a2a30;
+    --border-soft:      rgba(255, 255, 255, 0.06);
+    --color-text:       #f4f4f5;
+    --color-text-muted: #a1a1aa;
+
+    /* Sombras (camadas) */
+    --shadow-sm:   0 1px 2px rgba(0, 0, 0, 0.30);
+    --shadow-md:   0 4px 16px rgba(0, 0, 0, 0.35);
+    --shadow-lg:   0 16px 40px rgba(0, 0, 0, 0.50);
+    --shadow-glow: 0 6px 24px rgba(112, 23, 177, 0.35);
+
+    /* Raio */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
+
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
     --sidebar-width:    250px;
 }
 
@@ -385,5 +413,97 @@ body {
 
 /* Quando passa o mouse por cima do puxador */
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-primary); 
+    background: var(--color-primary);
 }
+
+/* ============================================================
+   POLISH PROFISSIONAL (camada de refinamento)
+   ============================================================ */
+
+body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em;
+    background-image:
+        radial-gradient(1000px circle at 100% 0%, rgba(112, 23, 177, 0.10), transparent 42%),
+        radial-gradient(800px circle at 0% 100%, rgba(112, 23, 177, 0.06), transparent 40%);
+    background-attachment: fixed;
+}
+
+.sidebar { border-right: 1px solid var(--border-soft); }
+
+.avatar {
+    background: linear-gradient(135deg, var(--surface-2), var(--surface-3));
+    border: 1px solid var(--border-soft);
+}
+
+.menu-items .active,
+.recente-link.active {
+    border-left-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+.top-bar h1 { letter-spacing: -0.02em; font-weight: 700; }
+
+.header-logo {
+    background: linear-gradient(90deg, #ffffff, var(--color-accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.01em;
+}
+
+.welcome {
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+.welcome h1 { letter-spacing: -0.02em; }
+
+/* Botões */
+.btn-modal {
+    background-image: linear-gradient(135deg, var(--color-primary), var(--color-primary-2));
+    box-shadow: var(--shadow-sm);
+    letter-spacing: 0.04em;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.btn-modal:hover {
+    background-color: transparent;
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-1px);
+}
+.btn-modal:active { transform: translateY(0); }
+
+/* Modais com elevação e blur */
+.modal-overlay {
+    background: rgba(8, 8, 10, 0.62);
+    backdrop-filter: blur(5px);
+}
+.modal-content,
+.modal-info-content {
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Dropdown dos 3 pontinhos (sobrescreve estilo inline do template) */
+.dropdown-menu {
+    background-color: var(--surface-2) !important;
+    border: 1px solid var(--border-soft) !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: var(--shadow-lg) !important;
+}
+
+/* Foco acessível e elegante */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+}
+button:focus:not(:focus-visible) { outline: none; }
+
+/* Scrollbar unificada */
+::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 99px; }

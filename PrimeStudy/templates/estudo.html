@@ -238,6 +238,7 @@
             altContainer.style.gap = '8px';
 
             let respondida = false;
+            let explicEl = null;
 
             q.alternativas.forEach((altTexto, altIndex) => {
                 const btn = document.createElement('button');
@@ -279,12 +280,32 @@
                             outroBtn.style.opacity = '0.4';
                         }
                     });
+
+                    if (explicEl && q.explicacao) explicEl.style.display = 'block';
                 });
 
                 altContainer.appendChild(btn);
             });
 
             qCard.appendChild(altContainer);
+
+            explicEl = document.createElement('div');
+            explicEl.style.display = 'none';
+            explicEl.style.marginTop = '14px';
+            explicEl.style.padding = '12px 14px';
+            explicEl.style.background = 'rgba(112, 23, 177, 0.10)';
+            explicEl.style.border = '1px solid rgba(112, 23, 177, 0.35)';
+            explicEl.style.borderRadius = '8px';
+            explicEl.style.fontSize = '13px';
+            explicEl.style.lineHeight = '1.5';
+            explicEl.style.color = '#cbb6e6';
+            const explicLabel = document.createElement('b');
+            explicLabel.style.color = '#c084fc';
+            explicLabel.textContent = 'Explicação: ';
+            explicEl.appendChild(explicLabel);
+            explicEl.appendChild(document.createTextNode(q.explicacao || ''));
+            qCard.appendChild(explicEl);
+
             wrapper.appendChild(qCard);
         });
 

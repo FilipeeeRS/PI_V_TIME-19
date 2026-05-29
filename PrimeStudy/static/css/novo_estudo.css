@@ -166,3 +166,33 @@
 .input-escuro::placeholder {
     color: var(--color-text-muted);
 }
+
+/* ============================================================
+   POLISH PROFISSIONAL
+   ============================================================ */
+
+.upload-area { background: rgba(255, 255, 255, 0.015); }
+.upload-area:hover,
+.upload-area.dragover {
+    background-color: rgba(112, 23, 177, 0.06);
+    box-shadow: inset 0 0 0 1px rgba(112, 23, 177, 0.25);
+}
+
+.btn-enviar {
+    background-image: linear-gradient(135deg, var(--color-primary), var(--color-primary-2));
+    transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+}
+.btn-enviar:not(:disabled):hover {
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-1px);
+    opacity: 1;
+}
+
+.input-escuro:focus { box-shadow: 0 0 0 3px rgba(112, 23, 177, 0.25); }
+
+.btn-escolher:focus-visible,
+.btn-enviar:focus-visible,
+.input-escuro:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+}
