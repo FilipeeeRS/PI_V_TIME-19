@@ -338,6 +338,8 @@
                 div.innerHTML = marked.parse(content);
                 body.appendChild(div);
             }
+        } else if (tipo === 'questoes') {
+            body.appendChild(renderQuestoes(content));
         } else if (tipo === 'mapa') {
             const mapaContainer = document.createElement('div');
             mapaContainer.style.cssText = 'width:100%;padding:8px 0;';

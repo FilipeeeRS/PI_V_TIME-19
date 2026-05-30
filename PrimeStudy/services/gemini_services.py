@@ -39,8 +39,15 @@ def gerar_conteudo(tipo, texto, historico=""):
             prompt = regra_formatacao + f"Faça um resumo MUITO CURTO, direto ao ponto e altamente sintetizado do texto abaixo:\n\n{texto}"
         elif tipo == 'topicos':
             prompt = regra_formatacao + aviso_historico + f"Extraia os principais pontos do texto abaixo em formato de tópicos curtos e diretos:\n\n{texto}"
-        elif tipo == 'flashcards':
-            prompt = regra_formatacao + aviso_historico + f"Crie flashcards de estudo baseados no texto no formato '<p><b>Pergunta:</b> ... <br> <b>Resposta:</b> ...</p>':\n\n{texto}"
+        elif tipo in ('flashcard', 'flashcards'):
+            prompt = (
+                aviso_historico +
+                "Crie entre 5 e 10 flashcards de estudo com os conceitos mais importantes do texto.\n"
+                "Use EXATAMENTE este formato de texto puro (sem HTML, sem markdown), uma linha P: e uma linha R: por card:\n"
+                "P: pergunta\n"
+                "R: resposta\n\n"
+                f"Texto:\n{texto}"
+            )
         elif tipo == 'questoes':
             regras_quiz = (
                 "Você é um professor especialista em elaborar avaliações de múltipla escolha. "
@@ -69,6 +76,28 @@ def gerar_conteudo(tipo, texto, historico=""):
                 response_schema=list[Questao],
                 system_instruction=regras_quiz,
             )
+        elif tipo == 'mapa':
+            prompt = (
+                aviso_historico +
+                "Gere um mapa mental do texto abaixo em formato de TEXTO INDENTADO com 2 espaços por nível.\n\n"
+                "Regras OBRIGATÓRIAS:\n"
+                "- Primeira linha: o tema principal (sem indentação).\n"
+                "- Subtemas: indentados com 2 espaços.\n"
+                "- Detalhes: indentados com 4 espaços.\n"
+                "- Mantenha acentos e português correto.\n"
+                "- NÃO use marcadores, hífens, asteriscos, numeração ou HTML.\n"
+                "- NÃO adicione nenhum texto fora da estrutura.\n"
+                "- Máximo de 6 subtemas e 3 detalhes por subtema.\n\n"
+                "Exemplo:\n"
+                "Tema Principal\n"
+                "  Subtema 1\n"
+                "    Detalhe 1\n"
+                "    Detalhe 2\n"
+                "  Subtema 2\n"
+                "    Detalhe 3\n\n"
+                f"Texto:\n{texto}"
+            )
+            config = types.GenerateContentConfig(temperature=0.4)
         elif tipo == 'sugerir_materia':
             prompt = f"Analise este texto e sugira um nome genérico e curto de disciplina/matéria (máximo de 3 palavras). Retorne APENAS o nome:\n\n{texto}"
         else:
