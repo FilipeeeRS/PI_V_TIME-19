@@ -41,6 +41,7 @@
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 <script>
     const ESTUDO_ID = "{{ estudo_id }}";
     const chatMessages = document.getElementById('chatMessages');
@@ -321,13 +322,12 @@
         msg.className = 'msg msg-ai msg-enter';
 
         const body = document.createElement('div');
-        body.className = 'msg-body';
-        
+        body.className = 'msg-body';        
+
         const avatar = document.createElement('div');
         avatar.className = 'msg-avatar';
         avatar.textContent = '✦';
 
-        // Trata o tipo de conteúdo a renderizar
         if (tipo === 'flashcard') {
             const cards = parsearFlashcards(content);
             if (cards.length > 0) {
@@ -338,11 +338,11 @@
                 div.innerHTML = marked.parse(content);
                 body.appendChild(div);
             }
-        } else if (tipo === 'questoes') {
-            const div = document.createElement('div');
-            div.className = 'resultado-content';
-            div.appendChild(renderQuestoes(content));
-            body.appendChild(div);
+        } else if (tipo === 'mapa') {
+            const mapaContainer = document.createElement('div');
+            mapaContainer.style.cssText = 'width:100%;padding:8px 0;';
+            body.appendChild(mapaContainer);
+            renderMapa(content, mapaContainer);
         } else {
             const div = document.createElement('div');
             div.className = `resultado-content resultado-${tipo || ''}`;

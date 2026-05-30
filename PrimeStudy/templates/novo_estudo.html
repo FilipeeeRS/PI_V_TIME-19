@@ -164,7 +164,30 @@
                 body: formData
             });
 
-            const data = await res.json();
+        document.getElementById('btnRemover').addEventListener('click', () => {
+            inputArquivo.value = '';
+            arquivoDiv.style.display = 'none';
+            validarFormulario();
+        });
+
+        btnEnviar.addEventListener('click', async () => {
+            const arquivo = inputArquivo.files[0];
+            const opcoesSelecionadas = [...document.querySelectorAll('.opcao.selecionada')]
+                .map(o => o.dataset.opcao);
+            const formData = new FormData();
+            formData.append('arquivo', arquivo);
+            formData.append('nome', document.getElementById('nomeEstudo').value);
+
+            btnEnviar.disabled = true;
+            btnEnviar.textContent = 'Processando...';
+
+            try {
+                const res = await fetch('/api/processar', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await res.json();
 
             if (!res.ok || data.status !== 'ok') {
                 mostrarAviso(data.mensagem || 'Erro ao processar o PDF.');
