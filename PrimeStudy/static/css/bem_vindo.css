@@ -1,24 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --brand:   #7017B1;
+    --brand-2: #9333ea;
+    --accent:  #c084fc;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
 body {
     margin: 0;
-    padding: 0;
-    background-color: #121212;
+    padding: 24px;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    font-family: 'Inter', sans-serif;
+    background-color: #0e0e10;
+    background-image:
+        radial-gradient(1000px circle at 85% 15%, rgba(112, 23, 177, 0.25), transparent 45%),
+        radial-gradient(800px circle at 10% 90%, rgba(147, 51, 234, 0.15), transparent 45%);
+    color: #f4f4f5;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em;
 }
 
 .main-card {
-    background-color: #1a1a1a;
-    width: 800px;
-    height: 500px;
+    background: linear-gradient(160deg, rgba(33, 33, 39, 0.92), rgba(20, 20, 24, 0.92));
+    backdrop-filter: blur(10px);
+    width: 100%;
+    max-width: 860px;
+    min-height: 480px;
     display: flex;
+    align-items: center;
+    gap: 32px;
     position: relative;
-    padding: 60px;
-    box-sizing: border-box;
-    color: white;
-    border-radius: 8px;
+    padding: 56px 60px 112px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55);
 }
 
 .content-left {
@@ -28,45 +50,38 @@ body {
     justify-content: center;
 }
 
-h1 {
-    font-size: 48px;
+.content-left h1 {
+    font-size: clamp(34px, 5vw, 52px);
     font-weight: 800;
     margin: 0;
-    line-height: 1.1;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
 }
 
-p {
+.content-left h1:nth-of-type(2) {
+    background: linear-gradient(90deg, #ffffff 10%, var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.content-left p {
     font-size: 16px;
-    color: #b3b3b3;
-    margin: 25px 0;
-    max-width: 380px;
-    line-height: 1.5;
+    color: #a1a1aa;
+    margin: 24px 0 0;
+    max-width: 420px;
+    line-height: 1.65;
 }
 
-p a {
-    color: #b3b3b3;
-    text-decoration: underline;
+.content-left p a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
 }
 
-.btn-vamos-la {
-    background-color: #7017B1;
-    color: white;
-    border: none;
-    padding: 18px 50px;
-    font-size: 20px;
-    font-weight: bold;
-    border-radius: 50px;
-    cursor: pointer;
-    position: absolute;
-    bottom: 45px;
-    left: 50%;
-    transform: translateX(-50%);
-    transition: opacity 0.2s;
-}
-
-.btn-vamos-la:hover {
-    opacity: 0.9;
-}
+.content-left p a:hover { border-bottom-color: var(--accent); }
 
 .icon-container {
     flex: 0.8;
@@ -75,11 +90,58 @@ p a {
     align-items: center;
 }
 
-.icon-placeholder {
-    width: 250px;
-    height: 250px;
-    background-image: url('CAMINHO_PARA_O_ICONE_GERADO.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
+.icon-container img {
+    width: 260px;
+    height: auto;
+    filter: drop-shadow(0 12px 40px rgba(112, 23, 177, 0.45));
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-12px); }
+}
+
+.btn-vamos-la {
+    background-image: linear-gradient(135deg, var(--brand), var(--brand-2));
+    color: #fff;
+    border: none;
+    padding: 16px 52px;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    border-radius: 50px;
+    cursor: pointer;
+    position: absolute;
+    bottom: 42px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 8px 24px rgba(112, 23, 177, 0.45);
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.btn-vamos-la:hover {
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 0 12px 32px rgba(112, 23, 177, 0.6);
+}
+
+.btn-vamos-la:active { transform: translateX(-50%) translateY(0); }
+.btn-vamos-la:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+@media (max-width: 720px) {
+    .main-card {
+        flex-direction: column-reverse;
+        text-align: center;
+        padding: 40px 28px 100px;
+        gap: 20px;
+        min-height: 0;
+    }
+    .content-left { align-items: center; }
+    .content-left p { margin-left: auto; margin-right: auto; }
+    .icon-container img { width: 170px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .icon-container img { animation: none; }
+    .btn-vamos-la { transition: none; }
 }

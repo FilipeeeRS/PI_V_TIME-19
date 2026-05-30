@@ -111,7 +111,7 @@
 .c-blue   { background: #2563eb; }
 .c-green  { background: #16a34a; }
 .c-red    { background: #dc2626; }
-.c-purple { background: #ca8a04; }
+.c-purple { background: #7c3aed; }
 .c-teal   { background: #0891b2; }
 .c-pink   { background: #db2777; }
 
@@ -205,3 +205,44 @@
 }
 
 .btn-criar:hover { opacity: 0.85; }
+
+/* ============================================================
+   POLISH PROFISSIONAL
+   ============================================================ */
+
+.materia-card {
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+.materia-card:hover { box-shadow: var(--shadow-lg); }
+
+/* Cards de matéria com gradiente (mais premium) + cor roxa corrigida */
+.c-blue   { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.c-green  { background: linear-gradient(135deg, #22c55e, #15803d); }
+.c-red    { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+.c-purple { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+.c-teal   { background: linear-gradient(135deg, #06b6d4, #0e7490); }
+.c-pink   { background: linear-gradient(135deg, #ec4899, #be185d); }
+.c-gray   { background: linear-gradient(135deg, #9ca3af, #4b5563); }
+
+.modal-nova-content {
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-criar {
+    background-image: linear-gradient(135deg, var(--color-primary), var(--color-primary-2));
+    transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+}
+.btn-criar:hover { box-shadow: var(--shadow-glow); transform: translateY(-1px); opacity: 1; }
+
+.modal-field input:focus { box-shadow: 0 0 0 3px rgba(112, 23, 177, 0.25); }
+
+.cor-opcao:focus-visible,
+.btn-criar:focus-visible,
+.btn-cancelar:focus-visible,
+.card-menu-btn:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+}
