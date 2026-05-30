@@ -41,6 +41,7 @@
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 <script>
     const ESTUDO_ID = "{{ estudo_id }}";
     const chatMessages = document.getElementById('chatMessages');
@@ -188,6 +189,238 @@
         return el;
     }
 
+    function parseIndentedTree(texto) {
+        const linhas = texto.split('\n')
+            .map(l => l
+                .replace(/\["(.+?)"\]/g, '$1')
+                .replace(/root\(\("?(.+?)"?\)\)/gi, '$1')
+                .replace(/\(\("?(.+?)"?\)\)/g, '$1')
+                .replace(/^[-*]\s+/, '')
+            )
+            .filter(l => l.trim() && !/^(mindmap|%%)/i.test(l.trim()));
+
+        if (!linhas.length) return null;
+
+        const getIndent = l => l.match(/^(\s*)/)[1].length;
+        const toNode = name => ({ name: name.trim(), children: [] });
+
+        const root = toNode(linhas[0]);
+        const stack = [{ node: root, indent: 0 }];
+
+        for (let i = 1; i < linhas.length; i++) {
+            const indent = getIndent(linhas[i]);
+            const node = toNode(linhas[i]);
+            while (stack.length > 1 && stack[stack.length - 1].indent >= indent) stack.pop();
+            stack[stack.length - 1].node.children.push(node);
+            stack.push({ node, indent });
+        }
+
+        return root;
+    }
+
+    // ---- Helpers de texto ----
+    function escSvg(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function wrapTexto(t, max) {
+        const words = String(t).split(/\s+/);
+        const lines = []; let cur = '';
+        for (const w of words) {
+            if ((cur + ' ' + w).trim().length > max) {
+                if (cur) lines.push(cur);
+                cur = w;
+            } else {
+                cur = (cur + ' ' + w).trim();
+            }
+        }
+        if (cur) lines.push(cur);
+        return lines;
+    }
+
+    // Constrói o SVG de um mapa mental balanceado (estilo clássico).
+    function buildMapaSVG(tree) {
+        const cores = ['#a855f7','#c084fc','#9333ea','#7c3aed','#8b5cf6','#6d28d9'];
+
+        const subs = (tree.children || []).slice(0, 6).map((s, i) => ({
+            name: s.name,
+            cor: cores[i % cores.length],
+            dets: (s.children || []).slice(0, 4)
+        }));
+
+        // Divide em dois lados (esquerda / direita)
+        const mid = Math.ceil(subs.length / 2);
+        const right = subs.slice(0, mid);
+        const left  = subs.slice(mid);
+
+        const W = 1180;
+        const CX = W / 2;
+        const COL_OFFSET = 210;      // distância do centro até a borda interna dos blocos
+        const BLOCK_W = 270;
+        const HEAD_LH = 21;          // altura de linha do título
+        const BULLET_LH = 19;        // altura de linha dos detalhes
+        const BLOCK_GAP = 34;        // espaço vertical entre blocos
+        const PAD_V = 70;
+
+        // Pré-calcula linhas e altura de cada bloco
+        function prep(block) {
+            block.headLines = wrapTexto(block.name, 26);
+            block.detLines = block.dets.map(d => wrapTexto(d.name, 34));
+            const totalDet = block.detLines.reduce((a, l) => a + l.length, 0);
+            block.h = block.headLines.length * HEAD_LH + 8
+                    + totalDet * BULLET_LH
+                    + (block.dets.length ? 10 : 0) + 6;
+            return block;
+        }
+        right.forEach(prep); left.forEach(prep);
+
+        const sideHeight = arr =>
+            arr.reduce((a, b) => a + b.h, 0) + Math.max(0, arr.length - 1) * BLOCK_GAP;
+
+        const rightH = sideHeight(right);
+        const leftH  = sideHeight(left);
+        const H = Math.max(rightH, leftH, 200) + PAD_V * 2;
+        const CY = H / 2;
+
+        // Bézier suave horizontal
+        const ramo = (x1, y1, x2, y2, cor) => {
+            const cp = (x1 + x2) / 2;
+            return `<path d="M${x1},${y1} C${cp},${y1} ${cp},${y2} ${x2},${y2}"
+                fill="none" stroke="${cor}" stroke-width="2.4" stroke-linecap="round" opacity="0.9"/>`;
+        };
+
+        // Desenha um bloco (título + detalhes) num lado
+        function desenharBloco(block, lado, topo) {
+            const isR = lado === 'R';
+            const X0 = isR ? CX + COL_OFFSET : CX - COL_OFFSET - BLOCK_W;
+            const anchorX = isR ? CX + COL_OFFSET : CX - COL_OFFSET;
+            const cy = topo + block.h / 2;
+
+            let svg = '';
+            let y = topo + HEAD_LH - 3;
+
+            // realce atrás do título
+            const headW = Math.min(BLOCK_W, Math.max(...block.headLines.map(l => l.length)) * 8.4 + 22);
+            const headBgX = isR ? X0 : X0 + (BLOCK_W - headW);
+            svg += `<rect x="${headBgX}" y="${topo - 4}" width="${headW}"
+                height="${block.headLines.length * HEAD_LH + 6}" rx="7"
+                fill="${block.cor}26" stroke="${block.cor}" stroke-width="1.4"/>`;
+
+            // título
+            block.headLines.forEach((l, i) => {
+                svg += `<text x="${isR ? X0 + 11 : X0 + BLOCK_W - 11}" y="${y + i * HEAD_LH}"
+                    text-anchor="${isR ? 'start' : 'end'}" fill="#f1eaff"
+                    font-size="14.5" font-weight="700"
+                    font-family="system-ui,sans-serif">${escSvg(l)}</text>`;
+            });
+
+            // detalhes (bullets)
+            let by = topo + block.headLines.length * HEAD_LH + 10 + BULLET_LH - 4;
+            block.detLines.forEach(linhas => {
+                linhas.forEach((l, i) => {
+                    const txt = (i === 0 ? '• ' : '   ') + l;
+                    svg += `<text x="${isR ? X0 + 13 : X0 + BLOCK_W - 13}" y="${by}"
+                        text-anchor="${isR ? 'start' : 'end'}" fill="#cfc6e0"
+                        font-size="12.5" font-family="system-ui,sans-serif">${escSvg(txt)}</text>`;
+                    by += BULLET_LH;
+                });
+            });
+
+            // ramo do centro até o bloco
+            const edgeX = isR ? CX + 92 : CX - 92;
+            const ramoSvg = ramo(edgeX, CY, anchorX, cy, block.cor)
+                + `<circle cx="${anchorX}" cy="${cy}" r="4" fill="${block.cor}"/>`;
+
+            return { svg, ramoSvg };
+        }
+
+        let blocos = '', ramos = '';
+        let ry = CY - rightH / 2;
+        right.forEach(b => {
+            const r = desenharBloco(b, 'R', ry);
+            blocos += r.svg; ramos += r.ramoSvg;
+            ry += b.h + BLOCK_GAP;
+        });
+        let ly = CY - leftH / 2;
+        left.forEach(b => {
+            const r = desenharBloco(b, 'L', ly);
+            blocos += r.svg; ramos += r.ramoSvg;
+            ly += b.h + BLOCK_GAP;
+        });
+
+        // Nó central
+        const raizLinhas = wrapTexto(tree.name, 16);
+        const raizY = CY - ((raizLinhas.length - 1) * 18) / 2 + 5;
+        const raiz = `
+            <ellipse cx="${CX}" cy="${CY}" rx="92" ry="58"
+                fill="#2e0a52" stroke="#c084fc" stroke-width="2.5" filter="url(#glowM)"/>
+            ${raizLinhas.map((l, i) => `<text x="${CX}" y="${raizY + i * 18}"
+                text-anchor="middle" fill="#f5f0ff" font-size="15" font-weight="700"
+                font-family="system-ui,sans-serif">${escSvg(l)}</text>`).join('')}`;
+
+        return `
+        <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="xMidYMid meet"
+            style="width:100%;height:100%;display:block;">
+            <defs>
+                <filter id="glowM" x="-60%" y="-60%" width="220%" height="220%">
+                    <feGaussianBlur stdDeviation="6" result="b"/>
+                    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+            </defs>
+            <rect width="${W}" height="${H}" fill="#0d0d0d"/>
+            ${ramos}${blocos}${raiz}
+        </svg>`;
+    }
+
+    function renderMapa(texto, container) {
+        const limpo = texto.replace(/```[a-z]*\n?/gi, '').trim();
+        const tree = parseIndentedTree(limpo);
+        if (!tree) {
+            container.innerHTML = `<pre style="color:#ccc;padding:16px;white-space:pre-wrap;">${limpo}</pre>`;
+            return;
+        }
+
+        container.style.cssText = 'width:100%;position:relative;';
+
+        const mapaBox = document.createElement('div');
+        mapaBox.style.cssText = 'width:100%;height:440px;border-radius:12px;overflow:hidden;background:#0d0d0d;';
+        mapaBox.innerHTML = buildMapaSVG(tree);
+        container.appendChild(mapaBox);
+
+        const btnMax = document.createElement('button');
+        btnMax.innerHTML = '⛶ Maximizar';
+        btnMax.className = 'mapa-btn-max';
+        btnMax.addEventListener('click', () => abrirMapaFullscreen(tree));
+        container.appendChild(btnMax);
+    }
+
+    function abrirMapaFullscreen(tree) {
+        let modal = document.getElementById('mapaModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'mapaModal';
+            modal.style.cssText = 'display:none;position:fixed;inset:0;background:#050505;z-index:9000;flex-direction:column;';
+            modal.innerHTML = `
+                <div style="flex-shrink:0;display:flex;justify-content:space-between;align-items:center;padding:14px 24px;border-bottom:1px solid #2a2a2a;">
+                    <span style="color:#c084fc;font-size:15px;font-weight:600;">🗺️ Mapa Mental</span>
+                    <button id="mapaModalFechar" style="background:#1a1a1a;border:1px solid #3a3a3a;border-radius:8px;color:#aaa;padding:7px 18px;cursor:pointer;font-family:inherit;font-size:13px;">✕ Fechar (Esc)</button>
+                </div>
+                <div id="mapaModalChart" style="flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;"></div>`;
+            document.body.appendChild(modal);
+
+            document.getElementById('mapaModalFechar').addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && modal.style.display === 'flex') modal.style.display = 'none';
+            });
+        }
+
+        modal.style.display = 'flex';
+        document.getElementById('mapaModalChart').innerHTML = buildMapaSVG(tree);
+    }
+
     function addAiMessage(content, tipo) {
         const loadingMsg = document.getElementById('loadingMsg');
         if (loadingMsg) loadingMsg.remove();
@@ -212,6 +445,11 @@
                 div.innerHTML = marked.parse(content);
                 body.appendChild(div);
             }
+        } else if (tipo === 'mapa') {
+            const mapaContainer = document.createElement('div');
+            mapaContainer.style.cssText = 'width:100%;padding:8px 0;';
+            body.appendChild(mapaContainer);
+            renderMapa(content, mapaContainer);
         } else {
             const div = document.createElement('div');
             div.className = `resultado-content resultado-${tipo || ''}`;
