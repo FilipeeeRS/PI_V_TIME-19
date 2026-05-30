@@ -1,76 +1,141 @@
-from google import genai
 import os
-from dotenv import load_dotenv
+import json
+from google import genai
+from google.genai import types
+from pydantic import BaseModel
 
-load_dotenv()
 
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+class Questao(BaseModel):
+    """Schema de saída estruturada para questões de múltipla escolha."""
+    pergunta: str
+    alternativas: list[str]
+    correta: int
+    explicacao: str
 
-PROMPTS = {
-    'resumo': """
-Gere um resumo fiel ao texto abaixo.
-- Não invente informações
-- Use tópicos claros
-- Destaque os conceitos principais
-""",
 
-    'flashcard': """
-Gere flashcards de estudo no formato:
-P: [pergunta]
-R: [resposta]
-
-Crie entre 5 e 10 flashcards com os conceitos mais importantes.
-""",
-
-    'questoes': """
-Gere 5 questões de múltipla escolha sobre o texto.
-
-Formato:
-1. [pergunta]
-a) ...
-b) ...
-c) ...
-d) ...
-
-Resposta correta: [letra]
-""",
-
-    'mapa': """
-Gere um mapa mental em formato hierárquico.
-
-Exemplo:
-Tema Principal
-  Subtema
-    Detalhe
-""",
-
-    'checklist': """
-Gere um checklist de estudo.
-
-Formato:
-[ ] Tópico
-""",
-
-    'topicos': """
-Liste os principais tópicos do texto usando bullet points.
-"""
-}
-
-def gerar_conteudo(tipo, texto):
-
-    prompt = PROMPTS.get(tipo)
-    if not prompt:
-        return "Tipo inválido."
+def gerar_conteudo(tipo, texto, historico=""):
     try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=f"""{prompt}Texto:{texto[:2000]}""",
-            generation_config={
-                "max_output_tokens": 300,
-                "temperature": 0.5
-            }
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            return "Erro: Chave da API do Gemini não encontrada."
+
+        client = genai.Client(api_key=api_key)
+        config = types.GenerateContentConfig(temperature=0.7)
+
+        regra_formatacao = (
+            "IMPORTANTE: Retorne APENAS o conteúdo usando tags HTML básicas (<b>, <ul>, <li>, <br>, <p>, <h3>). "
+            "NÃO inclua blocos de código markdown, NÃO inclua tags <style>. "
+            "Retorne APENAS o HTML puro do conteúdo.\n\n"
         )
-        return response.text
+
+        # Regra que força a IA a não repetir o que já foi gerado
+        aviso_historico = ""
+        if historico:
+            aviso_historico = f"ATENÇÃO: O utilizador solicitou MAIS itens. Você DEVE gerar conteúdo INÉDITO, sendo criativo e garantindo que seja diferente destes que já existem:\n{historico}\n\n"
+
+        if tipo == 'resumo':
+            prompt = regra_formatacao + aviso_historico + f"Faça um resumo detalhado e organizado do seguinte texto:\n\n{texto}"
+        elif tipo == 'resumo_menor':
+            prompt = regra_formatacao + f"Faça um resumo MUITO CURTO, direto ao ponto e altamente sintetizado do texto abaixo:\n\n{texto}"
+        elif tipo == 'topicos':
+            prompt = regra_formatacao + aviso_historico + f"Extraia os principais pontos do texto abaixo em formato de tópicos curtos e diretos:\n\n{texto}"
+        elif tipo in ('flashcard', 'flashcards'):
+            prompt = (
+                aviso_historico +
+                "Crie entre 5 e 10 flashcards de estudo com os conceitos mais importantes do texto.\n"
+                "Use EXATAMENTE este formato de texto puro (sem HTML, sem markdown), uma linha P: e uma linha R: por card:\n"
+                "P: pergunta\n"
+                "R: resposta\n\n"
+                f"Texto:\n{texto}"
+            )
+        elif tipo == 'questoes':
+            regras_quiz = (
+                "Você é um professor especialista em elaborar avaliações de múltipla escolha. "
+                "Gere as questões em português do Brasil, baseadas ESTRITAMENTE no texto fornecido — "
+                "nunca invente fatos que não estejam no texto.\n"
+                "Regras de qualidade (siga todas):\n"
+                "1. Cada questão deve testar COMPREENSÃO e raciocínio, não apenas memorização literal.\n"
+                "2. Exatamente UMA alternativa correta e inequívoca; as outras 3 devem ser plausíveis, "
+                "do mesmo assunto e de tamanho parecido, sem serem obviamente erradas.\n"
+                "3. Varie a posição da alternativa correta entre as questões (não deixe sempre no mesmo índice).\n"
+                "4. Não use 'todas as anteriores' nem 'nenhuma das anteriores'.\n"
+                "5. Enunciados claros e autossuficientes; evite ambiguidade, negativas duplas e pegadinhas.\n"
+                "6. Aborde partes diferentes do texto, não apenas o começo.\n"
+                "7. Sempre exatamente 4 alternativas por questão.\n"
+                "8. 'correta' é o índice (0 a 3) da alternativa certa dentro de 'alternativas'.\n"
+                "9. 'explicacao' é 1 ou 2 frases curtas justificando por que a alternativa correta está certa."
+            )
+            prompt = (
+                aviso_historico +
+                "Crie 5 questões de múltipla escolha sobre o texto a seguir.\n\n"
+                f"Texto:\n{texto}"
+            )
+            config = types.GenerateContentConfig(
+                temperature=0.8,
+                response_mime_type="application/json",
+                response_schema=list[Questao],
+                system_instruction=regras_quiz,
+            )
+        elif tipo == 'mapa':
+            prompt = (
+                aviso_historico +
+                "Gere um mapa mental do texto abaixo em formato de TEXTO INDENTADO com 2 espaços por nível.\n\n"
+                "Regras OBRIGATÓRIAS:\n"
+                "- Primeira linha: o tema principal (sem indentação).\n"
+                "- Subtemas: indentados com 2 espaços.\n"
+                "- Detalhes: indentados com 4 espaços.\n"
+                "- Mantenha acentos e português correto.\n"
+                "- NÃO use marcadores, hífens, asteriscos, numeração ou HTML.\n"
+                "- NÃO adicione nenhum texto fora da estrutura.\n"
+                "- Máximo de 6 subtemas e 3 detalhes por subtema.\n\n"
+                "Exemplo:\n"
+                "Tema Principal\n"
+                "  Subtema 1\n"
+                "    Detalhe 1\n"
+                "    Detalhe 2\n"
+                "  Subtema 2\n"
+                "    Detalhe 3\n\n"
+                f"Texto:\n{texto}"
+            )
+            config = types.GenerateContentConfig(temperature=0.4)
+        elif tipo == 'sugerir_materia':
+            prompt = f"Analise este texto e sugira um nome genérico e curto de disciplina/matéria (máximo de 3 palavras). Retorne APENAS o nome:\n\n{texto}"
+        else:
+            prompt = regra_formatacao + aviso_historico + f"Analise o texto e traga as informações principais:\n\n{texto}"
+
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config=config
+        )
+
+        resultado_limpo = response.text.replace('```html', '').replace('```json', '').replace('```', '').strip()
+
+        if tipo == 'questoes':
+            try:
+                dados = json.loads(resultado_limpo)
+                questoes_validas = []
+                for q in dados:
+                    alternativas = q.get('alternativas') or []
+                    if len(alternativas) < 2 or not q.get('pergunta'):
+                        continue
+                    correta = q.get('correta', 0)
+                    if not isinstance(correta, int) or correta < 0 or correta >= len(alternativas):
+                        correta = 0
+                    questoes_validas.append({
+                        'pergunta': q.get('pergunta', ''),
+                        'alternativas': alternativas,
+                        'correta': correta,
+                        'explicacao': q.get('explicacao', '')
+                    })
+                if not questoes_validas:
+                    raise ValueError('Nenhuma questão válida foi gerada')
+                resultado_limpo = json.dumps(questoes_validas, ensure_ascii=False)
+            except (json.JSONDecodeError, ValueError, AttributeError, TypeError):
+                return '[{"pergunta": "Erro ao gerar questões.", "alternativas": ["-", "-", "-", "-"], "correta": 0, "explicacao": ""}]'
+
+        return resultado_limpo
+
     except Exception as e:
-        print("Erro Gemini:", e)
-        return "Erro ao gerar conteúdo."
+        print(f"Erro Gemini: {e}") 
+        return f"<p>Erro ao gerar conteúdo.</p>"
