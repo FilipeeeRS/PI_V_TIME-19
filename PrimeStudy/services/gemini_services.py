@@ -38,7 +38,17 @@ def gerar_conteudo(tipo, texto, historico=""):
         elif tipo == 'resumo_menor':
             prompt = regra_formatacao + f"Faça um resumo MUITO CURTO, direto ao ponto e altamente sintetizado do texto abaixo:\n\n{texto}"
         elif tipo == 'topicos':
-            prompt = regra_formatacao + aviso_historico + f"Extraia os principais pontos do texto abaixo em formato de tópicos curtos e diretos:\n\n{texto}"
+            prompt = (
+                aviso_historico +
+                "Liste os TÓPICOS PRINCIPAIS do texto abaixo.\n"
+                "Regras OBRIGATÓRIAS:\n"
+                "- Retorne APENAS uma lista HTML usando <ul> e <li>.\n"
+                "- Cada <li> deve ser curto: máximo 10 palavras. Sem explicações, sem frases longas.\n"
+                "- NÃO use <p>, <h3>, <b>, <br> nem nenhuma outra tag HTML.\n"
+                "- NÃO adicione introdução, conclusão ou qualquer texto fora da lista.\n"
+                "- Entre 5 e 15 tópicos.\n\n"
+                f"Texto:\n{texto}"
+            )
         elif tipo == 'checklist_topicos':
             prompt = (
                 "Extraia os principais tópicos de estudo do texto abaixo em formato de checklist.\n"
