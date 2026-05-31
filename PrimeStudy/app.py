@@ -332,14 +332,14 @@ def processar_pdf():
         return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
 
     arquivo = request.files.get('arquivo')
-    nome = request.form.get('nome') or arquivo.filename
-    opcoes = json.loads(request.form.get('opcoes', '[]'))
-    
-    # NOVO: Recebe o ID da matéria caso o upload venha diretamente da página da matéria
-    materia_id_form = request.form.get('materia_id') 
 
     if not arquivo:
         return jsonify({'status': 'erro', 'mensagem': 'Nenhum arquivo enviado'}), 400
+
+    nome = request.form.get('nome') or arquivo.filename
+
+    # NOVO: Recebe o ID da matéria caso o upload venha diretamente da página da matéria
+    materia_id_form = request.form.get('materia_id')
 
     texto = ''
     with pdfplumber.open(io.BytesIO(arquivo.read())) as pdf:
@@ -389,7 +389,10 @@ def gerar_conteudo_route():
     acao = data.get('acao', 'novo')
 
     doc_ref = db.collection('usuarios').document(uid).collection('estudos').document(estudo_id)
-    estudo = doc_ref.get().to_dict()
+    snap = doc_ref.get()
+    if not snap.exists:
+        return jsonify({'status': 'erro', 'mensagem': 'Estudo não encontrado'}), 404
+    estudo = snap.to_dict()
     texto = estudo.get('texto', '')
 
     # --- LÓGICA NOVA: QUESTÕES DO RESUMO ---
