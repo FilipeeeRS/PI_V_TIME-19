@@ -263,6 +263,67 @@ def desvincular_materia(estudo_id):
     })
     return jsonify({'status': 'ok'})
 
+# CHECKLIST DE TÓPICOS: gera (1ª vez) ou retorna os tópicos salvos + estado de marcação
+@app.route('/api/estudos/<estudo_id>/checklist', methods=['GET'])
+def obter_checklist(estudo_id):
+    uid = session.get('uid')
+    if not uid:
+        return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
+
+    doc_ref = db.collection('usuarios').document(uid).collection('estudos').document(estudo_id)
+    snap = doc_ref.get()
+    if not snap.exists:
+        return jsonify({'status': 'erro', 'mensagem': 'Estudo não encontrado'}), 404
+
+    estudo = snap.to_dict()
+    checklist = estudo.get('checklist')
+
+    # Já existe checklist salvo -> devolve direto
+    if isinstance(checklist, list) and checklist:
+        return jsonify({'status': 'ok', 'itens': checklist})
+
+    # Senão, gera a partir do texto do material
+    texto = estudo.get('texto', '')
+    if not texto:
+        return jsonify({'status': 'erro', 'mensagem': 'Este estudo não tem material para gerar a checklist.'}), 400
+
+    resultado = gerar_conteudo('checklist_topicos', texto)
+
+    itens = []
+    for linha in resultado.split('\n'):
+        t = linha.strip().lstrip('-*•0123456789.) ').strip()
+        if t:
+            itens.append({'texto': t, 'feito': False})
+
+    if not itens:
+        return jsonify({'status': 'erro', 'mensagem': 'Não foi possível gerar a checklist.'}), 500
+
+    doc_ref.update({'checklist': itens})
+    return jsonify({'status': 'ok', 'itens': itens})
+
+# CHECKLIST DE TÓPICOS: salva o estado de marcação (o que já foi estudado)
+@app.route('/api/estudos/<estudo_id>/checklist', methods=['PUT'])
+def salvar_checklist(estudo_id):
+    uid = session.get('uid')
+    if not uid:
+        return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
+
+    data = request.get_json(silent=True) or {}
+    itens = data.get('itens')
+    if not isinstance(itens, list):
+        return jsonify({'status': 'erro', 'mensagem': 'Formato inválido'}), 400
+
+    # Sanitiza: mantém só texto + feito (bool)
+    limpos = []
+    for it in itens:
+        if isinstance(it, dict) and it.get('texto'):
+            limpos.append({'texto': str(it['texto']), 'feito': bool(it.get('feito'))})
+
+    db.collection('usuarios').document(uid).collection('estudos').document(estudo_id).update({
+        'checklist': limpos
+    })
+    return jsonify({'status': 'ok'})
+
 ### CRIAR NOVO ESTUDO - ATUALIZADO PARA SUPORTAR UPLOAD DENTRO DA MATÉRIA
 @app.route('/api/processar', methods=['POST'])
 def processar_pdf():

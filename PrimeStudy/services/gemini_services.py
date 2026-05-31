@@ -39,6 +39,18 @@ def gerar_conteudo(tipo, texto, historico=""):
             prompt = regra_formatacao + f"Faça um resumo MUITO CURTO, direto ao ponto e altamente sintetizado do texto abaixo:\n\n{texto}"
         elif tipo == 'topicos':
             prompt = regra_formatacao + aviso_historico + f"Extraia os principais pontos do texto abaixo em formato de tópicos curtos e diretos:\n\n{texto}"
+        elif tipo == 'checklist_topicos':
+            prompt = (
+                "Extraia os principais tópicos de estudo do texto abaixo em formato de checklist.\n"
+                "Regras OBRIGATÓRIAS:\n"
+                "- Um tópico por linha.\n"
+                "- Tópicos curtos e diretos (máximo ~8 palavras).\n"
+                "- SEM numeração, SEM marcadores, SEM hífens, SEM HTML, SEM markdown.\n"
+                "- Entre 5 e 15 tópicos.\n"
+                "- NÃO adicione nenhum texto fora da lista.\n\n"
+                f"Texto:\n{texto}"
+            )
+            config = types.GenerateContentConfig(temperature=0.5)
         elif tipo in ('flashcard', 'flashcards'):
             prompt = (
                 aviso_historico +
