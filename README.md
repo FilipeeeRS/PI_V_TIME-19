@@ -31,7 +31,7 @@ Orientadora:
 
   - Linguagem: Python
   - Framework Web: Flask
-  - Processamento de PDF: pdfplumber, pytesseract (OCR para leitura de imagens)
+  - Processamento de PDF: pdfplumber
   - IA Generativa: API do Google Gemini (Google GenAI)
   - Banco de dados: Firebase (Firestore & Authentication)
   - Frontend: HTML5, CSS3, JavaScript
