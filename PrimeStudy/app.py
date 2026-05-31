@@ -36,7 +36,8 @@ def inject_session():
             recentes.append({
                 'id': doc.id,
                 'nome': estudo.get('nome', 'Estudo sem nome'),
-                'opcao': estudo.get('opcao', '')
+                'opcao': estudo.get('opcao', ''),
+                'materia_id': estudo.get('materia_id', '')
             })
 
     return dict(session=session, estudos_recentes=recentes)
@@ -240,7 +241,7 @@ def vincular_materia(estudo_id):
     if not uid:
         return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
     
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     materia_id = data.get('materia_id')
 
     if materia_id:
@@ -262,6 +263,67 @@ def desvincular_materia(estudo_id):
     })
     return jsonify({'status': 'ok'})
 
+# CHECKLIST DE TÓPICOS: gera (1ª vez) ou retorna os tópicos salvos + estado de marcação
+@app.route('/api/estudos/<estudo_id>/checklist', methods=['GET'])
+def obter_checklist(estudo_id):
+    uid = session.get('uid')
+    if not uid:
+        return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
+
+    doc_ref = db.collection('usuarios').document(uid).collection('estudos').document(estudo_id)
+    snap = doc_ref.get()
+    if not snap.exists:
+        return jsonify({'status': 'erro', 'mensagem': 'Estudo não encontrado'}), 404
+
+    estudo = snap.to_dict()
+    checklist = estudo.get('checklist')
+
+    # Já existe checklist salvo -> devolve direto
+    if isinstance(checklist, list) and checklist:
+        return jsonify({'status': 'ok', 'itens': checklist})
+
+    # Senão, gera a partir do texto do material
+    texto = estudo.get('texto', '')
+    if not texto:
+        return jsonify({'status': 'erro', 'mensagem': 'Este estudo não tem material para gerar a checklist.'}), 400
+
+    resultado = gerar_conteudo('checklist_topicos', texto)
+
+    itens = []
+    for linha in resultado.split('\n'):
+        t = linha.strip().lstrip('-*•0123456789.) ').strip()
+        if t:
+            itens.append({'texto': t, 'feito': False})
+
+    if not itens:
+        return jsonify({'status': 'erro', 'mensagem': 'Não foi possível gerar a checklist.'}), 500
+
+    doc_ref.update({'checklist': itens})
+    return jsonify({'status': 'ok', 'itens': itens})
+
+# CHECKLIST DE TÓPICOS: salva o estado de marcação (o que já foi estudado)
+@app.route('/api/estudos/<estudo_id>/checklist', methods=['PUT'])
+def salvar_checklist(estudo_id):
+    uid = session.get('uid')
+    if not uid:
+        return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
+
+    data = request.get_json(silent=True) or {}
+    itens = data.get('itens')
+    if not isinstance(itens, list):
+        return jsonify({'status': 'erro', 'mensagem': 'Formato inválido'}), 400
+
+    # Sanitiza: mantém só texto + feito (bool)
+    limpos = []
+    for it in itens:
+        if isinstance(it, dict) and it.get('texto'):
+            limpos.append({'texto': str(it['texto']), 'feito': bool(it.get('feito'))})
+
+    db.collection('usuarios').document(uid).collection('estudos').document(estudo_id).update({
+        'checklist': limpos
+    })
+    return jsonify({'status': 'ok'})
+
 ### CRIAR NOVO ESTUDO - ATUALIZADO PARA SUPORTAR UPLOAD DENTRO DA MATÉRIA
 @app.route('/api/processar', methods=['POST'])
 def processar_pdf():
@@ -270,14 +332,14 @@ def processar_pdf():
         return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
 
     arquivo = request.files.get('arquivo')
-    nome = request.form.get('nome') or arquivo.filename
-    opcoes = json.loads(request.form.get('opcoes', '[]'))
-    
-    # NOVO: Recebe o ID da matéria caso o upload venha diretamente da página da matéria
-    materia_id_form = request.form.get('materia_id') 
 
     if not arquivo:
         return jsonify({'status': 'erro', 'mensagem': 'Nenhum arquivo enviado'}), 400
+
+    nome = request.form.get('nome') or arquivo.filename
+
+    # NOVO: Recebe o ID da matéria caso o upload venha diretamente da página da matéria
+    materia_id_form = request.form.get('materia_id')
 
     texto = ''
     with pdfplumber.open(io.BytesIO(arquivo.read())) as pdf:
@@ -292,23 +354,9 @@ def processar_pdf():
             'mensagem': 'Este PDF contém imagens escaneadas e não possui texto legível. Por favor, envie um PDF com texto selecionável.'
         }), 400
 
-    materia_id = materia_id_form # Assume a matéria do formulário (se existir)
-
-    # Só pede para a IA sugerir uma matéria se o utilizador NÃO tiver enviado uma
-    if not materia_id:
-        materia_sugerida = gerar_conteudo('sugerir_materia', texto[:2000]).strip()
-        materia_sugerida = materia_sugerida.replace('*', '').replace('`', '').strip()
-        
-        if materia_sugerida and len(materia_sugerida) <= 40 and "Erro" not in materia_sugerida:
-            materias_ref = db.collection('usuarios').document(uid).collection('materias')
-            query = materias_ref.where('nome', '==', materia_sugerida).limit(1).stream()
-            for doc_m in query:
-                materia_id = doc_m.id
-                break
-            
-            if not materia_id:
-                nova_materia = materias_ref.add({'nome': materia_sugerida, 'cor': '#7017B1', 'estudos': 0})
-                materia_id = nova_materia[1].id
+    # Vincula à matéria somente se o upload veio de dentro de uma matéria.
+    # Não cria nem sugere matéria automaticamente: só o usuário cria matérias.
+    materia_id = materia_id_form
 
     estudo_ref = db.collection('usuarios').document(uid).collection('estudos').document()
     
@@ -341,7 +389,10 @@ def gerar_conteudo_route():
     acao = data.get('acao', 'novo')
 
     doc_ref = db.collection('usuarios').document(uid).collection('estudos').document(estudo_id)
-    estudo = doc_ref.get().to_dict()
+    snap = doc_ref.get()
+    if not snap.exists:
+        return jsonify({'status': 'erro', 'mensagem': 'Estudo não encontrado'}), 404
+    estudo = snap.to_dict()
     texto = estudo.get('texto', '')
 
     # --- LÓGICA NOVA: QUESTÕES DO RESUMO ---

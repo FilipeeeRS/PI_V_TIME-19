@@ -40,7 +40,56 @@ Orientadora:
 
 ## 📍 Como Executar
 
-1. Clone o repositório: git clone https://github.com/FilipeeeRS/PI_V_TIME-19.git
-2.  Instale as dependências: pip install -r requirements.txt
-3. Execute a aplicação: python app.py
-4. Abra no navegador: http://127.0.0.1:5000
+### Pré-requisitos
+- Python 3.10 ou superior instalado
+- Conta no [Firebase](https://firebase.google.com/) com projeto criado (Firestore + Authentication habilitados)
+- Chave de API do [Google Gemini](https://aistudio.google.com/app/apikey)
+
+---
+
+### Passo 1 — Clone o repositório
+```bash
+git clone https://github.com/FilipeeeRS/PI_V_TIME-19.git
+cd PI_V_TIME-19
+```
+
+### Passo 2 — Instale as dependências
+```bash
+pip install -r requirements.txt
+```
+
+### Passo 3 — Configure as credenciais do Firebase
+Baixe o arquivo `serviceAccountKey.json` do seu projeto Firebase:
+> Firebase Console → Configurações do projeto → Contas de serviço → Gerar nova chave privada
+
+Cole o arquivo `serviceAccountKey.json` dentro da pasta `PrimeStudy/`.
+
+### Passo 4 — Configure as variáveis de ambiente
+Crie um arquivo `.env` dentro da pasta `PrimeStudy/` com o seguinte conteúdo:
+```env
+SECRET_KEY=sua_chave_secreta_flask
+GEMINI_API_KEY=sua_chave_api_gemini
+
+FIREBASE_API_KEY=...
+FIREBASE_AUTH_DOMAIN=...
+FIREBASE_PROJECT_ID=...
+FIREBASE_STORAGE_BUCKET=...
+FIREBASE_MESSAGING_SENDER_ID=...
+FIREBASE_APP_ID=...
+```
+> Os valores do Firebase estão em: Firebase Console → Configurações do projeto → Seus aplicativos → SDK de configuração.
+
+### Passo 5 — Entre na pasta da aplicação
+```bash
+cd PrimeStudy
+```
+
+### Passo 6 — Execute a aplicação
+```bash
+python app.py
+```
+
+### Passo 7 — Acesse no navegador
+```
+http://127.0.0.1:5000
+```
