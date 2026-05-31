@@ -655,22 +655,40 @@
         lista.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
         body.appendChild(lista);
 
+        const SVG_CHECK = `<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+        function aplicarEstadoIcone(iconEl, feito) {
+            iconEl.innerHTML = feito ? SVG_CHECK : '';
+            iconEl.style.background = feito ? '#22c55e' : 'transparent';
+            iconEl.style.borderColor = feito ? '#22c55e' : '#555';
+        }
+
         itens.forEach((item, idx) => {
-            const row = document.createElement('label');
-            row.style.cssText = 'display:flex;align-items:flex-start;gap:12px;padding:10px 12px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;cursor:pointer;transition:0.15s;';
-            row.innerHTML = `
-                <input type="checkbox" ${item.feito ? 'checked' : ''} style="margin-top:2px;width:17px;height:17px;accent-color:#7017b1;cursor:pointer;flex-shrink:0;">
-                <span style="font-size:14px;line-height:1.4;${item.feito ? 'color:#555;text-decoration:line-through;' : 'color:#e8e8e8;'}">${item.texto}</span>
-            `;
-            const cb = row.querySelector('input');
-            cb.addEventListener('change', () => {
-                itens[idx].feito = cb.checked;
-                const span = row.querySelector('span');
-                span.style.color = cb.checked ? '#555' : '#e8e8e8';
-                span.style.textDecoration = cb.checked ? 'line-through' : 'none';
+            const row = document.createElement('div');
+            row.style.cssText = `display:flex;align-items:flex-start;gap:12px;padding:10px 12px;background:#1a1a1a;border:1px solid ${item.feito ? '#22c55e44' : '#2a2a2a'};border-radius:10px;cursor:pointer;transition:border-color 0.2s;`;
+
+            const iconEl = document.createElement('div');
+            iconEl.style.cssText = 'flex-shrink:0;width:20px;height:20px;border-radius:50%;border:2px solid #555;display:flex;align-items:center;justify-content:center;transition:all 0.2s;margin-top:1px;';
+            aplicarEstadoIcone(iconEl, item.feito);
+
+            const span = document.createElement('span');
+            span.style.cssText = `font-size:14px;line-height:1.4;color:${item.feito ? '#555' : '#e8e8e8'};text-decoration:${item.feito ? 'line-through' : 'none'};`;
+            span.textContent = item.texto;
+
+            row.appendChild(iconEl);
+            row.appendChild(span);
+
+            row.addEventListener('click', () => {
+                itens[idx].feito = !itens[idx].feito;
+                const feito = itens[idx].feito;
+                aplicarEstadoIcone(iconEl, feito);
+                span.style.color = feito ? '#555' : '#e8e8e8';
+                span.style.textDecoration = feito ? 'line-through' : 'none';
+                row.style.borderColor = feito ? '#22c55e44' : '#2a2a2a';
                 atualizarProgresso();
                 salvarEstado();
             });
+
             lista.appendChild(row);
         });
 

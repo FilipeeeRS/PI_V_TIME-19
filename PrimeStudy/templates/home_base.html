@@ -477,6 +477,14 @@
                     : `${feitos} de ${total} estudados`);
         }
 
+        const SVG_CHECK_MODAL = `<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+        function aplicarEstadoModal(iconEl, feito) {
+            iconEl.innerHTML = feito ? SVG_CHECK_MODAL : '';
+            iconEl.style.background = feito ? '#22c55e' : 'transparent';
+            iconEl.style.borderColor = feito ? '#22c55e' : '#555';
+        }
+
         function renderChecklist() {
             checklistBody.innerHTML = '';
             if (!checklistItens.length) {
@@ -485,26 +493,31 @@
                 return;
             }
             checklistItens.forEach((item, idx) => {
-                const row = document.createElement('label');
-                row.style.cssText = 'display:flex; align-items:flex-start; gap:12px; padding:10px 12px; background:#222; border:1px solid var(--color-border); border-radius:10px; cursor:pointer; transition:0.15s;';
-                row.innerHTML = `
-                    <input type="checkbox" ${item.feito ? 'checked' : ''} style="margin-top:2px; width:18px; height:18px; accent-color:var(--color-primary); cursor:pointer; flex-shrink:0;">
-                    <span style="font-size:14px; line-height:1.4; ${item.feito ? 'color:var(--color-text-muted); text-decoration:line-through;' : 'color:var(--color-text);'}">${item.texto}</span>
-                `;
-                const cb = row.querySelector('input');
-                cb.addEventListener('change', () => {
-                    checklistItens[idx].feito = cb.checked;
-                    const span = row.querySelector('span');
-                    if (cb.checked) {
-                        span.style.color = 'var(--color-text-muted)';
-                        span.style.textDecoration = 'line-through';
-                    } else {
-                        span.style.color = 'var(--color-text)';
-                        span.style.textDecoration = 'none';
-                    }
+                const row = document.createElement('div');
+                row.style.cssText = `display:flex; align-items:flex-start; gap:12px; padding:10px 12px; background:#222; border:1px solid ${item.feito ? '#22c55e44' : 'var(--color-border)'}; border-radius:10px; cursor:pointer; transition:border-color 0.2s;`;
+
+                const iconEl = document.createElement('div');
+                iconEl.style.cssText = 'flex-shrink:0; width:20px; height:20px; border-radius:50%; border:2px solid #555; display:flex; align-items:center; justify-content:center; transition:all 0.2s; margin-top:1px;';
+                aplicarEstadoModal(iconEl, item.feito);
+
+                const span = document.createElement('span');
+                span.style.cssText = `font-size:14px; line-height:1.4; color:${item.feito ? 'var(--color-text-muted)' : 'var(--color-text)'}; text-decoration:${item.feito ? 'line-through' : 'none'};`;
+                span.textContent = item.texto;
+
+                row.appendChild(iconEl);
+                row.appendChild(span);
+
+                row.addEventListener('click', () => {
+                    checklistItens[idx].feito = !checklistItens[idx].feito;
+                    const feito = checklistItens[idx].feito;
+                    aplicarEstadoModal(iconEl, feito);
+                    span.style.color = feito ? 'var(--color-text-muted)' : 'var(--color-text)';
+                    span.style.textDecoration = feito ? 'line-through' : 'none';
+                    row.style.borderColor = feito ? '#22c55e44' : 'var(--color-border)';
                     atualizarProgressoChecklist();
                     agendarSalvarChecklist();
                 });
+
                 checklistBody.appendChild(row);
             });
             atualizarProgressoChecklist();
