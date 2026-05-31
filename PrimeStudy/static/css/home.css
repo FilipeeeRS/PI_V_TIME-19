@@ -474,6 +474,28 @@ body {
 }
 .btn-modal:active { transform: translateY(0); }
 
+/* Botões CANCELAR dos modais: neutros, sem o gradiente roxo (diferenciar do SALVAR) */
+#btnCancelarDelete,
+#btnCancelarRename,
+#btnCancelarMover,
+#btnCancelarRemoverMateria {
+    background-image: none;
+    background-color: var(--surface-2);
+    color: var(--color-text-muted);
+    box-shadow: none;
+    border: 1px solid var(--border-soft);
+}
+#btnCancelarDelete:hover,
+#btnCancelarRename:hover,
+#btnCancelarMover:hover,
+#btnCancelarRemoverMateria:hover {
+    background-image: none;
+    background-color: var(--surface-3);
+    color: var(--color-text);
+    box-shadow: none;
+    transform: none;
+}
+
 /* Modais com elevação e blur */
 .modal-overlay {
     background: rgba(8, 8, 10, 0.62);
