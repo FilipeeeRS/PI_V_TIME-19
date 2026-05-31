@@ -116,6 +116,112 @@
         return cards;
     }
 
+    function renderQuestoes(textoJson) {
+        let questoes = [];
+        try {
+            questoes = JSON.parse(textoJson);
+        } catch (e) {
+            console.error('Erro no JSON das questões:', e);
+            const erroDiv = document.createElement('div');
+            erroDiv.innerHTML = "<p style='color:#e74c3c;'>Erro ao ler as questões geradas. Tente novamente.</p>";
+            return erroDiv;
+        }
+        if (!Array.isArray(questoes) || questoes.length === 0) {
+            const erroDiv = document.createElement('div');
+            erroDiv.innerHTML = "<p style='color:#e74c3c;'>Nenhuma questão foi gerada. Tente novamente.</p>";
+            return erroDiv;
+        }
+
+        const estado = questoes.map(() => ({ respondida: false, escolhida: null }));
+        let atual = 0;
+
+        // --- Casca fixa: counter + área + botões + progresso ---
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = `
+            <div class="q-wrapper">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                    <span class="q-counter" style="font-size:13px;color:#aaa;">Questão 1 de ${questoes.length}</span>
+                    <div style="display:flex;gap:8px;">
+                        <button class="fc-btn q-prev" style="opacity:0.3;cursor:not-allowed;">← Anterior</button>
+                        <button class="fc-btn q-next">Próximo →</button>
+                    </div>
+                </div>
+                <div class="q-area"></div>
+                <p class="q-prog" style="font-size:12px;color:#555;text-align:center;margin-top:12px;"></p>
+            </div>`;
+        const el = wrapper.firstElementChild;
+
+        const area    = el.querySelector('.q-area');
+        const counter = el.querySelector('.q-counter');
+        const progEl  = el.querySelector('.q-prog');
+        const btnPrev = el.querySelector('.q-prev');
+        const btnNext = el.querySelector('.q-next');
+
+        function atualizarProgresso() {
+            const respondidas = estado.filter(s => s.respondida).length;
+            const acertos = estado.filter((s, i) => s.respondida && s.escolhida === questoes[i].correta).length;
+            progEl.textContent = respondidas === questoes.length
+                ? `✓ Todas respondidas · ${acertos} de ${questoes.length} acertos`
+                : `${respondidas} de ${questoes.length} respondidas · ${acertos} acertos`;
+        }
+
+        // --- Desenha a questão de índice i (lendo estado[i]) ---
+        function mostrar(i) {
+            const q = questoes[i];
+            const st = estado[i];
+            counter.textContent = `Questão ${i + 1} de ${questoes.length}`;
+
+            area.innerHTML = `
+                <p style="color:#e8e8e8;line-height:1.5;margin:0 0 16px;">${q.pergunta}</p>
+                <div class="q-alts" style="display:flex;flex-direction:column;gap:8px;"></div>
+                <div class="q-explic" style="display:none;margin-top:14px;padding:12px 14px;
+                    background:rgba(112,23,177,.10);border:1px solid rgba(112,23,177,.35);
+                    border-radius:8px;font-size:13px;line-height:1.5;color:#cbb6e6;">
+                    <b style="color:#c084fc;">Explicação: </b><span class="q-explic-txt"></span>
+                </div>`;
+
+            const alts = area.querySelector('.q-alts');
+            const explic = area.querySelector('.q-explic');
+            area.querySelector('.q-explic-txt').textContent = q.explicacao || '';
+
+            (q.alternativas || []).forEach((alt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'opcao-questao';
+                btn.textContent = alt;
+
+                if (st.respondida) {
+                    if (idx === q.correta) btn.classList.add('correta');
+                    else if (idx === st.escolhida) btn.classList.add('errada');
+                    btn.style.cursor = 'default';
+                    if (idx !== q.correta && idx !== st.escolhida) btn.style.opacity = '0.45';
+                } else {
+                    btn.addEventListener('click', () => {
+                        st.respondida = true;
+                        st.escolhida = idx;
+                        mostrar(i);
+                        atualizarProgresso();
+                    });
+                }
+                alts.appendChild(btn);
+            });
+
+            if (st.respondida) explic.style.display = 'block';
+
+            // Navegação livre: setas só "apagam" nas pontas
+            btnPrev.style.opacity = i === 0 ? '0.3' : '1';
+            btnPrev.style.cursor  = i === 0 ? 'not-allowed' : 'pointer';
+            btnNext.style.opacity = i === questoes.length - 1 ? '0.3' : '1';
+            btnNext.style.cursor  = i === questoes.length - 1 ? 'not-allowed' : 'pointer';
+        }
+
+        btnNext.addEventListener('click', () => { if (atual < questoes.length - 1) { atual++; mostrar(atual); } });
+        btnPrev.addEventListener('click', () => { if (atual > 0) { atual--; mostrar(atual); } });
+
+        mostrar(atual);
+        atualizarProgresso();
+        return el;
+    }
+
     function renderFlashcards(cards) {
         let atual = 0;
         const vistos = new Set();
@@ -414,127 +520,6 @@
 
         modal.style.display = 'flex';
         document.getElementById('mapaModalChart').innerHTML = buildMapaSVG(tree);
-    }
-
-    // --- NOVA FUNÇÃO DE QUESTÕES INTERATIVAS ---
-    function renderQuestoes(textoJson) {
-        let questoes = [];
-        try {
-            questoes = JSON.parse(textoJson);
-        } catch (e) {
-            console.error("Erro no JSON das questões:", e);
-            const erroDiv = document.createElement('div');
-            erroDiv.innerHTML = "<p style='color:#e74c3c;'>Erro ao ler as questões geradas. Tente novamente.</p>";
-            return erroDiv;
-        }
-
-        const wrapper = document.createElement('div');
-        wrapper.style.display = 'flex';
-        wrapper.style.flexDirection = 'column';
-        wrapper.style.gap = '20px';
-        wrapper.style.marginTop = '10px';
-
-        questoes.forEach((q, index) => {
-            const qCard = document.createElement('div');
-            qCard.style.background = '#1a1a1a';
-            qCard.style.border = '1px solid #2a2a2a';
-            qCard.style.borderRadius = '12px';
-            qCard.style.padding = '20px';
-
-            const pTitle = document.createElement('h4');
-            pTitle.textContent = `Questão ${index + 1}`;
-            pTitle.style.color = '#7017b1';
-            pTitle.style.margin = '0 0 10px 0';
-            pTitle.style.fontSize = '14px';
-            pTitle.style.textTransform = 'uppercase';
-
-            const pText = document.createElement('p');
-            pText.textContent = q.pergunta;
-            pText.style.color = '#e8e8e8';
-            pText.style.margin = '0 0 16px 0';
-            pText.style.lineHeight = '1.5';
-
-            qCard.appendChild(pTitle);
-            qCard.appendChild(pText);
-
-            const altContainer = document.createElement('div');
-            altContainer.style.display = 'flex';
-            altContainer.style.flexDirection = 'column';
-            altContainer.style.gap = '8px';
-
-            let respondida = false;
-            let explicEl = null;
-
-            q.alternativas.forEach((altTexto, altIndex) => {
-                const btn = document.createElement('button');
-                btn.textContent = altTexto;
-                btn.style.background = '#222';
-                btn.style.color = '#ccc';
-                btn.style.border = '1px solid #333';
-                btn.style.borderRadius = '8px';
-                btn.style.padding = '12px 16px';
-                btn.style.textAlign = 'left';
-                btn.style.cursor = 'pointer';
-                btn.style.transition = 'all 0.2s';
-                btn.style.fontFamily = 'inherit';
-                btn.style.fontSize = '14px';
-
-                btn.addEventListener('mouseover', () => {
-                    if (!respondida) btn.style.background = '#2a2a2a';
-                });
-                btn.addEventListener('mouseout', () => {
-                    if (!respondida) btn.style.background = '#222';
-                });
-
-                btn.addEventListener('click', () => {
-                    if (respondida) return;
-                    respondida = true;
-
-                    Array.from(altContainer.children).forEach((outroBtn, i) => {
-                        outroBtn.style.cursor = 'default';
-                        
-                        if (i === q.correta) {
-                            outroBtn.style.background = 'rgba(46, 204, 113, 0.15)';
-                            outroBtn.style.borderColor = '#2ecc71';
-                            outroBtn.style.color = '#2ecc71';
-                        } else if (i === altIndex && i !== q.correta) {
-                            outroBtn.style.background = 'rgba(231, 76, 60, 0.15)';
-                            outroBtn.style.borderColor = '#e74c3c';
-                            outroBtn.style.color = '#e74c3c';
-                        } else {
-                            outroBtn.style.opacity = '0.4';
-                        }
-                    });
-
-                    if (explicEl && q.explicacao) explicEl.style.display = 'block';
-                });
-
-                altContainer.appendChild(btn);
-            });
-
-            qCard.appendChild(altContainer);
-
-            explicEl = document.createElement('div');
-            explicEl.style.display = 'none';
-            explicEl.style.marginTop = '14px';
-            explicEl.style.padding = '12px 14px';
-            explicEl.style.background = 'rgba(112, 23, 177, 0.10)';
-            explicEl.style.border = '1px solid rgba(112, 23, 177, 0.35)';
-            explicEl.style.borderRadius = '8px';
-            explicEl.style.fontSize = '13px';
-            explicEl.style.lineHeight = '1.5';
-            explicEl.style.color = '#cbb6e6';
-            const explicLabel = document.createElement('b');
-            explicLabel.style.color = '#c084fc';
-            explicLabel.textContent = 'Explicação: ';
-            explicEl.appendChild(explicLabel);
-            explicEl.appendChild(document.createTextNode(q.explicacao || ''));
-            qCard.appendChild(explicEl);
-
-            wrapper.appendChild(qCard);
-        });
-
-        return wrapper;
     }
 
     // --- FUNÇÃO PARA CRIAR A MENSAGEM DA IA NO CHAT ---
