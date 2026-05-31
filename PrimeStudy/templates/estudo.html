@@ -615,8 +615,123 @@
         document.querySelectorAll('.chip').forEach(c => c.disabled = true);
     }
 
+    // --- CHECKLIST UNIFICADO: mesma fonte de dados do menu ⋮ ---
+    function renderChecklistNoChat(itens, body) {
+        body.innerHTML = '';
+
+        if (!itens || !itens.length) {
+            body.innerHTML = '<p style="color:#aaa;font-style:italic;">Nenhum tópico encontrado.</p>';
+            return;
+        }
+
+        let saveTimer = null;
+
+        function salvarEstado() {
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(async () => {
+                try {
+                    await fetch(`/api/estudos/${ESTUDO_ID}/checklist`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ itens })
+                    });
+                } catch (e) { console.error('Erro ao salvar checklist:', e); }
+            }, 600);
+        }
+
+        function atualizarProgresso() {
+            const total = itens.length;
+            const feitos = itens.filter(i => i.feito).length;
+            progEl.textContent = feitos === total
+                ? `✓ Tudo estudado! ${feitos} de ${total}`
+                : `${feitos} de ${total} estudados`;
+        }
+
+        const progEl = document.createElement('p');
+        progEl.style.cssText = 'font-size:12px;color:var(--color-primary,#7017b1);margin:0 0 12px;';
+        body.appendChild(progEl);
+
+        const lista = document.createElement('div');
+        lista.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
+        body.appendChild(lista);
+
+        itens.forEach((item, idx) => {
+            const row = document.createElement('label');
+            row.style.cssText = 'display:flex;align-items:flex-start;gap:12px;padding:10px 12px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;cursor:pointer;transition:0.15s;';
+            row.innerHTML = `
+                <input type="checkbox" ${item.feito ? 'checked' : ''} style="margin-top:2px;width:17px;height:17px;accent-color:#7017b1;cursor:pointer;flex-shrink:0;">
+                <span style="font-size:14px;line-height:1.4;${item.feito ? 'color:#555;text-decoration:line-through;' : 'color:#e8e8e8;'}">${item.texto}</span>
+            `;
+            const cb = row.querySelector('input');
+            cb.addEventListener('change', () => {
+                itens[idx].feito = cb.checked;
+                const span = row.querySelector('span');
+                span.style.color = cb.checked ? '#555' : '#e8e8e8';
+                span.style.textDecoration = cb.checked ? 'line-through' : 'none';
+                atualizarProgresso();
+                salvarEstado();
+            });
+            lista.appendChild(row);
+        });
+
+        atualizarProgresso();
+    }
+
+    async function carregarChecklistNoChat() {
+        disableAllChips();
+        addUserMessage(LABELS['checklist']);
+        const loadingEl = addLoadingMessage();
+
+        try {
+            const res = await fetch(`/api/estudos/${ESTUDO_ID}/checklist`);
+            const data = await res.json();
+
+            const loadingMsg = document.getElementById('loadingMsg');
+            if (loadingMsg) loadingMsg.remove();
+
+            const msg = document.createElement('div');
+            msg.className = 'msg msg-ai msg-enter';
+
+            const avatar = document.createElement('div');
+            avatar.className = 'msg-avatar';
+            avatar.innerHTML = '<img src="/static/logoV2.png" style="width:22px;height:22px;object-fit:contain;">';
+
+            const body = document.createElement('div');
+            body.className = 'msg-body';
+
+            const checkBody = document.createElement('div');
+            checkBody.style.cssText = 'width:100%;padding:4px 0 8px;';
+
+            if (data.status === 'ok') {
+                renderChecklistNoChat(data.itens || [], checkBody);
+            } else {
+                checkBody.innerHTML = `<p style="color:#ff6b6b;">${data.mensagem || 'Erro ao carregar checklist.'}</p>`;
+            }
+
+            body.appendChild(checkBody);
+            body.insertAdjacentHTML('beforeend', `<p style="font-size:12px;color:#555;margin:12px 0 2px;letter-spacing:0.5px;">O que deseja gerar agora?</p>`);
+            body.insertAdjacentHTML('beforeend', CHIPS_HTML);
+
+            msg.appendChild(avatar);
+            msg.appendChild(body);
+            chatMessages.appendChild(msg);
+            bindChips(msg);
+            scrollToBottom();
+        } catch (err) {
+            const loadingMsg = document.getElementById('loadingMsg');
+            if (loadingMsg) loadingMsg.remove();
+            addAiMessage('Erro ao carregar o checklist. Tente novamente.', 'erro');
+        }
+    }
+
     // --- FUNÇÃO DE CHAMADA À API (Apenas uma vez, escopo global) ---
     async function handleOpcao(tipo, acao = 'novo') {
+        // Checklist usa endpoint unificado (mesmo dado do menu ⋮)
+        if (tipo === 'checklist') {
+            await carregarChecklistNoChat();
+            return;
+        }
+
         disableAllChips();
         addUserMessage(LABELS[tipo] || tipo);
         addLoadingMessage();
@@ -630,8 +745,8 @@
 
             const data = await res.json();
             const conteudo = data.conteudo || data.resultado || 'Conteúdo gerado com sucesso!';
-            
-            addAiMessage(conteudo, data.tipo_render || tipo); 
+
+            addAiMessage(conteudo, data.tipo_render || tipo);
         } catch (err) {
             const loadingMsg = document.getElementById('loadingMsg');
             if (loadingMsg) loadingMsg.remove();
@@ -649,7 +764,7 @@
 
     // Renderizar conteúdo histórico (salvo no banco de dados)
     const conteudoSalvo = {{ estudo.conteudo | tojson if estudo.conteudo else '{}' }};
-    const ordem = ['resumo', 'flashcard', 'questoes', 'mapa', 'checklist', 'topicos'];
+    const ordem = ['resumo', 'flashcard', 'questoes', 'mapa', 'topicos']; // checklist usa endpoint unificado
     
     for (const tipo of ordem) {
         if (conteudoSalvo[tipo]) {
