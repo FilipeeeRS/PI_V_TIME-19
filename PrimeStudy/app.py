@@ -36,7 +36,8 @@ def inject_session():
             recentes.append({
                 'id': doc.id,
                 'nome': estudo.get('nome', 'Estudo sem nome'),
-                'opcao': estudo.get('opcao', '')
+                'opcao': estudo.get('opcao', ''),
+                'materia_id': estudo.get('materia_id', '')
             })
 
     return dict(session=session, estudos_recentes=recentes)
@@ -240,7 +241,7 @@ def vincular_materia(estudo_id):
     if not uid:
         return jsonify({'status': 'erro', 'mensagem': 'Não autenticado'}), 401
     
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     materia_id = data.get('materia_id')
 
     if materia_id:
@@ -292,23 +293,9 @@ def processar_pdf():
             'mensagem': 'Este PDF contém imagens escaneadas e não possui texto legível. Por favor, envie um PDF com texto selecionável.'
         }), 400
 
-    materia_id = materia_id_form # Assume a matéria do formulário (se existir)
-
-    # Só pede para a IA sugerir uma matéria se o utilizador NÃO tiver enviado uma
-    if not materia_id:
-        materia_sugerida = gerar_conteudo('sugerir_materia', texto[:2000]).strip()
-        materia_sugerida = materia_sugerida.replace('*', '').replace('`', '').strip()
-        
-        if materia_sugerida and len(materia_sugerida) <= 40 and "Erro" not in materia_sugerida:
-            materias_ref = db.collection('usuarios').document(uid).collection('materias')
-            query = materias_ref.where('nome', '==', materia_sugerida).limit(1).stream()
-            for doc_m in query:
-                materia_id = doc_m.id
-                break
-            
-            if not materia_id:
-                nova_materia = materias_ref.add({'nome': materia_sugerida, 'cor': '#7017B1', 'estudos': 0})
-                materia_id = nova_materia[1].id
+    # Vincula à matéria somente se o upload veio de dentro de uma matéria.
+    # Não cria nem sugere matéria automaticamente: só o usuário cria matérias.
+    materia_id = materia_id_form
 
     estudo_ref = db.collection('usuarios').document(uid).collection('estudos').document()
     

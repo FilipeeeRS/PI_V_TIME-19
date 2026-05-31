@@ -96,7 +96,7 @@
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                     Renomear
                 </button>
-                <button class="dropdown-item" onclick="moverParaMateria('{{ estudo_item.id }}')">
+                <button class="dropdown-item" onclick="moverParaMateria('{{ estudo_item.id }}', '{{ estudo_item.materia_id }}')">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
                     Mover para matéria
                 </button>
@@ -355,7 +355,7 @@
         const selectMateria = document.getElementById('selectMateria');
 
         // 1. Abre a tela de Mover e puxa as matérias do banco de dados
-        async function moverParaMateria(estudoId) {
+        async function moverParaMateria(estudoId, materiaAtual = '') {
             estudoIdParaMateria = estudoId;
             modalMover.style.display = 'flex';
             selectMateria.innerHTML = '<option value="">Carregando matérias...</option>';
@@ -364,11 +364,16 @@
                 const res = await fetch('/api/materias');
                 if (res.ok) {
                     const materias = await res.json();
+                    // Remove a matéria onde o estudo já está (não faz sentido mover pra mesma)
+                    const disponiveis = materias.filter(m => m.id !== materiaAtual);
+
                     if (materias.length === 0) {
                         selectMateria.innerHTML = '<option value="">Crie uma matéria primeiro!</option>';
+                    } else if (disponiveis.length === 0) {
+                        selectMateria.innerHTML = '<option value="">Nenhuma outra matéria disponível</option>';
                     } else {
                         selectMateria.innerHTML = '<option value="">Selecione a matéria...</option>';
-                        materias.forEach(m => {
+                        disponiveis.forEach(m => {
                             selectMateria.innerHTML += `<option value="${m.id}">${m.nome}</option>`;
                         });
                     }
@@ -393,7 +398,7 @@
                 });
 
                 if (res.ok) {
-                    window.location.reload();
+                    window.location.href = '/materia/' + materiaId;
                 } else {
                     alert('Erro ao vincular matéria.');
                     document.getElementById('btnConfirmarMover').innerText = "SALVAR";
