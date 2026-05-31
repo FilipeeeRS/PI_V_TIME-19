@@ -507,3 +507,51 @@ button:focus:not(:focus-visible) { outline: none; }
 
 /* Scrollbar unificada */
 ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 99px; }
+
+
+
+.home-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 24px 0 20px;
+    width: 100%;
+    max-width: 480px;
+}
+
+.home-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: all 0.18s ease;
+    text-align: left;
+}
+
+.home-card:hover {
+    background: rgba(112, 23, 177, 0.12);
+    border-color: rgba(112, 23, 177, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(112, 23, 177, 0.2);
+}
+
+.home-card-icon {
+    font-size: 22px;
+    margin-bottom: 4px;
+}
+
+.home-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.home-card-desc {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    line-height: 1.4;
+}

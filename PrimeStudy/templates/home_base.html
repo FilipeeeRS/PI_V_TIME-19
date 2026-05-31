@@ -62,6 +62,9 @@
         </div>
 
         <ul class="menu-items">
+            <a href="{{ url_for('home_page') }}" style="text-decoration: none; color: inherit;">
+                <li class="{{ 'active' if pagina_ativa == 'home' else '' }}"> HOME</li>
+            </a>
             <a href="{{ url_for('novo_estudo') }}" style="text-decoration: none; color: inherit;">
                 <li class="{{ 'active' if pagina_ativa == 'novo_estudo' else '' }}">NOVO ESTUDO</li>
             </a>

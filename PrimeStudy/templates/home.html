@@ -7,10 +7,37 @@
 {% endblock %}
 
 {% block conteudo %}
-        <div class="welcome">
-            <h1>Olá{% if session.get('nome') %}, {{ session.get('nome').split()[0] }}{% endif %}!</h1>
-            <p>Selecione uma opção no painel à esquerda para começar.</p>
-        </div>
+<div class="welcome">
+    <h1>Olá{% if session.get('nome') %}, {{ session.get('nome').split()[0] }}{% endif %}!</h1>
+    <p>Envie um PDF e deixe a IA gerar seu material de estudo.</p>
+
+    <div class="home-cards">
+        <a href="{{ url_for('novo_estudo') }}" class="home-card">
+            <span class="home-card-icon">📝</span>
+            <span class="home-card-title">Resumo</span>
+            <span class="home-card-desc">Síntese clara e organizada do conteúdo</span>
+        </a>
+        <a href="{{ url_for('novo_estudo') }}" class="home-card">
+            <span class="home-card-icon">🃏</span>
+            <span class="home-card-title">Flashcards</span>
+            <span class="home-card-desc">Perguntas e respostas para memorização</span>
+        </a>
+        <a href="{{ url_for('novo_estudo') }}" class="home-card">
+            <span class="home-card-icon">❓</span>
+            <span class="home-card-title">Questões</span>
+            <span class="home-card-desc">Quiz interativo de múltipla escolha</span>
+        </a>
+        <a href="{{ url_for('novo_estudo') }}" class="home-card">
+            <span class="home-card-icon">🗺️</span>
+            <span class="home-card-title">Mapa Mental</span>
+            <span class="home-card-desc">Visualização hierárquica do conteúdo</span>
+        </a>
+    </div>
+
+    <a href="{{ url_for('novo_estudo') }}" class="btn-modal" style="text-decoration:none;margin-top:8px;">
+        Começar agora →
+    </a>
+</div>
 {% endblock %}
 
 {% block modais %}
